@@ -1,0 +1,44 @@
+# t/002_basic.t - check module dates in various formats
+
+use Test::More tests => 6;
+use DateTime::Format::Strptime;
+
+my $object = DateTime::Format::Strptime->new(
+	pattern => '%D',
+	time_zone => 'Australia/Melbourne',
+	language => 'English',
+	diagnostic => 0,
+);
+
+my $epoch = DateTime->new(
+	year => 2003, month => 11, day => 5,
+	hour => 23, minute => 34, second => 45,
+	time_zone => 'Australia/Melbourne'
+)->epoch;
+
+
+my @tests = (
+	# Compound Patterns
+	['%T',	'23:34:45', '24-hour Time'],
+	['%r', '11:34:45 PM', '12-hour Time'],
+	['%R', '23:34', 'Simple 24-hour Time'],
+	['%D', '11/30/03', 'American Style Date'],
+	['%F', '2003-11-30', 'ISO Style Date'],
+
+	['%a %b %B %C %d %e %h %H %I %j %k %l %m %M %n %p %P %S %U %u %w %W %y %Y %s %G %g %z %Z %%', 
+	"Wed Nov November 20 05  5 Nov 23 11 309 23 11 11 34 \n PM pm 45 44 3 3 44 03 2003 $epoch 2003 03 +1100 EST %",
+	"Every token at once"],
+
+);
+
+diag($DateTime::Format::Strptime::VERxSION);
+
+foreach (@tests) {
+	my ($pattern, $data, $name) = @$_;
+	$name ||= $pattern;
+	#print "-- $pattern ($data) --\n";
+	$object->pattern($pattern);
+	#print $object->parse_datetime( $data )->strftime("%Y-%m-%d %H:%M:%S\n");
+	#print $object->parse_datetime( $data )->strftime("Got: $pattern\n");
+	ok($object->parse_datetime( $data )->strftime($pattern) eq $data, $name);
+}
