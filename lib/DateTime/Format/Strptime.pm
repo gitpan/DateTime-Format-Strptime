@@ -3,24 +3,185 @@ package DateTime::Format::Strptime;
 use strict;
 use DateTime;
 use DateTime::Language;
+use DateTime::TimeZone;
 use Params::Validate qw( validate SCALAR BOOLEAN OBJECT );
 use Carp;
 
 use Exporter;
-use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK );
+use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS);
 
 @ISA = 'Exporter';
-$VERSION = '1.00.01';
+$VERSION = '1.0100';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
+%ZONEMAP = (
+     'A' => '+0100',       'ACDT' => '+1030',       'ACST' => '+0930',     
+   'ADT' => 'Ambiguous',   'AEDT' => '+1100',        'AES' => '+1000',     
+  'AEST' => '+1000',        'AFT' => '+0430',       'AHDT' => '-0900',     
+  'AHST' => '-1000',       'AKDT' => '-0800',       'AKST' => '-0900',     
+  'AMST' => '+0400',        'AMT' => '+0400',      'ANAST' => '+1300',     
+  'ANAT' => '+1200',        'ART' => '-0300',        'AST' => 'Ambiguous', 
+    'AT' => '-0100',       'AWST' => '+0800',      'AZOST' => '+0000',     
+  'AZOT' => '-0100',       'AZST' => '+0500',        'AZT' => '+0400',     
+     'B' => '+0200',       'BADT' => '+0400',        'BAT' => '+0600',     
+  'BDST' => '+0200',        'BDT' => '+0600',        'BET' => '-1100',     
+   'BNT' => '+0800',       'BORT' => '+0800',        'BOT' => '-0400',     
+   'BRA' => '-0300',        'BST' => 'Ambiguous',     'BT' => 'Ambiguous', 
+   'BTT' => '+0600',          'C' => '+0300',       'CAST' => '+0930',     
+   'CAT' => 'Ambiguous',    'CCT' => 'Ambiguous',    'CDT' => 'Ambiguous', 
+  'CEST' => '+0200',        'CET' => '+0100',     'CETDST' => '+0200',     
+ 'CHADT' => '+1345',      'CHAST' => '+1245',        'CKT' => '-1000',     
+  'CLST' => '-0300',        'CLT' => '-0400',        'COT' => '-0500',     
+   'CST' => 'Ambiguous',   'CSuT' => '+1030',        'CUT' => '+0000',     
+   'CVT' => '-0100',        'CXT' => '+0700',       'ChST' => '+1000',     
+     'D' => '+0400',       'DAVT' => '+0700',       'DDUT' => '+1000',     
+   'DNT' => '+0100',        'DST' => '+0200',          'E' => '+0500',     
+ 'EASST' => '-0500',       'EAST' => 'Ambiguous',    'EAT' => '+0300',     
+   'ECT' => 'Ambiguous',    'EDT' => 'Ambiguous',   'EEST' => '+0300',     
+   'EET' => '+0200',     'EETDST' => '+0300',       'EGST' => '+0000',     
+   'EGT' => '-0100',        'EMT' => '+0100',        'EST' => 'Ambiguous', 
+  'ESuT' => '+1100',          'F' => '+0600',        'FDT' => 'Ambiguous', 
+  'FJST' => '+1300',        'FJT' => '+1200',       'FKST' => '-0300',     
+   'FKT' => '-0400',        'FST' => 'Ambiguous',    'FWT' => '+0100',     
+     'G' => '+0700',       'GALT' => '-0600',       'GAMT' => '-0900',     
+  'GEST' => '+0500',        'GET' => '+0400',        'GFT' => '-0300',     
+  'GILT' => '+1200',        'GMT' => '+0000',        'GST' => 'Ambiguous', 
+    'GT' => '+0000',        'GYT' => '-0400',         'GZ' => '+0000',     
+     'H' => '+0800',        'HAA' => '-0300',        'HAC' => '-0500',     
+   'HAE' => '-0400',        'HAP' => '-0700',        'HAR' => '-0600',     
+   'HAT' => '-0230',        'HAY' => '-0800',        'HDT' => '-0930',     
+   'HFE' => '+0200',        'HFH' => '+0100',         'HG' => '+0000',     
+   'HKT' => '+0800',         'HL' => 'local',        'HNA' => '-0400',     
+   'HNC' => '-0600',        'HNE' => '-0500',        'HNP' => '-0800',     
+   'HNR' => '-0700',        'HNT' => '-0330',        'HNY' => '-0900',     
+   'HOE' => '+0100',        'HST' => '-1000',          'I' => '+0900',     
+   'ICT' => '+0700',       'IDLE' => '+1200',       'IDLW' => '-1200',     
+   'IDT' => 'Ambiguous',    'IOT' => '+0500',       'IRDT' => '+0430',     
+ 'IRKST' => '+0900',       'IRKT' => '+0800',       'IRST' => '+0430',     
+   'IRT' => '+0330',        'IST' => 'Ambiguous',     'IT' => '+0330',     
+   'ITA' => '+0100',       'JAVT' => '+0700',       'JAYT' => '+0900',     
+   'JST' => '+0900',         'JT' => '+0700',          'K' => '+1000',     
+   'KDT' => '+1000',       'KGST' => '+0600',        'KGT' => '+0500',     
+  'KOST' => '+1200',      'KRAST' => '+0800',       'KRAT' => '+0700',     
+   'KST' => '+0900',          'L' => '+1100',       'LHDT' => '+1100',     
+  'LHST' => '+1030',       'LIGT' => '+1000',       'LINT' => '+1400',     
+   'LKT' => '+0600',        'LST' => 'local',         'LT' => 'local',     
+     'M' => '+1200',      'MAGST' => '+1200',       'MAGT' => '+1100',     
+   'MAL' => '+0800',       'MART' => '-0930',        'MAT' => '+0300',     
+  'MAWT' => '+0600',        'MDT' => '-0600',        'MED' => '+0200',     
+ 'MEDST' => '+0200',       'MEST' => '+0200',       'MESZ' => '+0200',     
+   'MET' => 'Ambiguous',   'MEWT' => '+0100',        'MEX' => '-0600',     
+   'MEZ' => '+0100',        'MHT' => '+1200',        'MMT' => '+0630',     
+   'MPT' => '+1000',        'MSD' => '+0400',        'MSK' => '+0300',     
+  'MSKS' => '+0400',        'MST' => '-0700',         'MT' => '+0830',     
+   'MUT' => '+0400',        'MVT' => '+0500',        'MYT' => '+0800',     
+     'N' => '-0100',        'NCT' => '+1100',        'NDT' => '-0230',     
+   'NFT' => 'Ambiguous',    'NOR' => '+0100',      'NOVST' => '+0700',     
+  'NOVT' => '+0600',        'NPT' => '+0545',        'NRT' => '+1200',     
+   'NST' => 'Ambiguous',   'NSUT' => '+0630',         'NT' => '-1100',     
+   'NUT' => '-1100',       'NZDT' => '+1300',       'NZST' => '+1200',     
+   'NZT' => '+1200',          'O' => '-0200',       'OESZ' => '+0300',     
+   'OEZ' => '+0200',      'OMSST' => '+0700',       'OMST' => '+0600',     
+    'OZ' => 'local',          'P' => '-0300',        'PDT' => '-0700',     
+   'PET' => '-0500',      'PETST' => '+1300',       'PETT' => '+1200',     
+   'PGT' => '+1000',       'PHOT' => '+1300',        'PHT' => '+0800',     
+   'PKT' => '+0500',       'PMDT' => '-0200',        'PMT' => '-0300',     
+   'PNT' => '-0830',       'PONT' => '+1100',        'PST' => 'Ambiguous', 
+   'PWT' => '+0900',       'PYST' => '-0300',        'PYT' => '-0400',     
+     'Q' => '-0400',          'R' => '-0500',        'R1T' => '+0200',     
+   'R2T' => '+0300',        'RET' => '+0400',        'ROK' => '+0900',     
+     'S' => '-0600',       'SADT' => '+1030',       'SAST' => 'Ambiguous', 
+   'SBT' => '+1100',        'SCT' => '+0400',        'SET' => '+0100',     
+   'SGT' => '+0800',        'SRT' => '-0300',        'SST' => 'Ambiguous', 
+   'SWT' => '+0100',          'T' => '-0700',        'TFT' => '+0500',     
+   'THA' => '+0700',       'THAT' => '-1000',        'TJT' => '+0500',     
+   'TKT' => '-1000',        'TMT' => '+0500',        'TOT' => '+1300',     
+  'TRUT' => '+1000',        'TST' => '+0300',       'TUC ' => '+0000',     
+   'TVT' => '+1200',          'U' => '-0800',      'ULAST' => '+0900',     
+  'ULAT' => '+0800',       'USZ1' => '+0200',      'USZ1S' => '+0300',     
+  'USZ3' => '+0400',      'USZ3S' => '+0500',       'USZ4' => '+0500',     
+ 'USZ4S' => '+0600',       'USZ5' => '+0600',      'USZ5S' => '+0700',     
+  'USZ6' => '+0700',      'USZ6S' => '+0800',       'USZ7' => '+0800',     
+ 'USZ7S' => '+0900',       'USZ8' => '+0900',      'USZ8S' => '+1000',     
+  'USZ9' => '+1000',      'USZ9S' => '+1100',        'UTZ' => '-0300',     
+   'UYT' => '-0300',       'UZ10' => '+1100',      'UZ10S' => '+1200',     
+  'UZ11' => '+1200',      'UZ11S' => '+1300',       'UZ12' => '+1200',     
+ 'UZ12S' => '+1300',        'UZT' => '+0500',          'V' => '-0900',     
+   'VET' => '-0400',      'VLAST' => '+1100',       'VLAT' => '+1000',     
+   'VTZ' => '-0200',        'VUT' => '+1100',          'W' => '-1000',     
+  'WAKT' => '+1200',       'WAST' => 'Ambiguous',    'WAT' => '+0100',     
+  'WEST' => '+0100',       'WESZ' => '+0100',        'WET' => '+0000',     
+'WETDST' => '+0100',        'WEZ' => '+0000',        'WFT' => '+1200',     
+  'WGST' => '-0200',        'WGT' => '-0300',        'WIB' => '+0700',     
+   'WIT' => '+0900',       'WITA' => '+0800',        'WST' => 'Ambiguous', 
+   'WTZ' => '-0100',        'WUT' => '+0100',          'X' => '-1100',     
+     'Y' => '-1200',      'YAKST' => '+1000',       'YAKT' => '+0900',     
+  'YAPT' => '+1000',        'YDT' => '-0800',      'YEKST' => '+0600',     
+  'YEKT' => '+0500',        'YST' => '-0900',          'Z' => '+0000',     
+);
 
+%FORMATS =
+    ( 'a' => sub { $_[0]->day_abbr },
+      'A' => sub { $_[0]->day_name },
+      'b' => sub { $_[0]->month_abbr },
+      'B' => sub { $_[0]->month_name },
+#      'c' => sub { $_[0]->strftime( $_[0]->{language}->preferred_datetime_format ) },
+      'C' => sub { int( $_[0]->year / 100 ) },
+      'd' => sub { sprintf( '%02d', $_[0]->day_of_month ) },
+      'D' => sub { $_[0]->strftime( '%m/%d/%y' ) },
+      'e' => sub { sprintf( '%2d', $_[0]->day_of_month ) },
+      'F' => sub { $_[0]->ymd('-') },
+      'g' => sub { substr( $_[0]->week_year, -2 ) },
+      'G' => sub { $_[0]->week_year },
+      'H' => sub { sprintf( '%02d', $_[0]->hour ) },
+      'I' => sub { my $h = $_[0]->hour; $h -= 12 if $h >= 12; sprintf( '%02d', $h ) },
+      'j' => sub { $_[0]->day_of_year },
+      'k' => sub { sprintf( '%2d', $_[0]->hour ) },
+      'l' => sub { my $h = $_[0]->hour; $h -= 12 if $h >= 12; $h=12 if $h==0; sprintf( '%2d', $h ) },
+      'm' => sub { sprintf( '%02d', $_[0]->month ) },
+      'M' => sub { sprintf( '%02d', $_[0]->minute ) },
+      'n' => sub { "\n" }, # should this be OS-sensitive?
+      'N' => \&_format_nanosecs,
+      'p' => sub { $_[0]->{language}->am_pm( $_[0] ) },
+      'P' => sub { lc $_[0]->{language}->am_pm( $_[0] ) },
+      'r' => sub { $_[0]->strftime( '%I:%M:%S %p' ) },
+      'R' => sub { $_[0]->strftime( '%H:%M' ) },
+      's' => sub { $_[0]->epoch },
+      'S' => sub { sprintf( '%02d', $_[0]->second ) },
+      't' => sub { "\t" },
+      'T' => sub { $_[0]->strftime( '%H:%M:%S' ) },
+      'u' => sub { $_[0]->day_of_week },
+      # algorithm from Date::Format::wkyr
+      'U' => sub { my $dow = $_[0]->day_of_week;
+                   $dow = 0 if $dow == 7; # convert to 0-6, Sun-Sat
+                   my $doy = $_[0]->day_of_year - 1;
+                   return int( ( $doy - $dow + 13 ) / 7 - 1 )
+                 },
+      'w' => sub { my $dow = $_[0]->day_of_week;
+                   return $dow % 7;
+                 },
+      'W' => sub { my $dow = $_[0]->day_of_week;
+                   my $doy = $_[0]->day_of_year - 1;
+                   return int( ( $doy - $dow + 13 ) / 7 - 1 )
+                 },
+#      'x' => sub { $_[0]->strftime( $_[0]->{language}->preferred_date_format ) },
+#      'X' => sub { $_[0]->strftime( $_[0]->{language}->preferred_time_format ) },
+      'y' => sub { sprintf( '%02d', substr( $_[0]->year, -2 ) ) },
+      'Y' => sub { return $_[0]->year },
+      'z' => sub { DateTime::TimeZone::offset_as_string( $_[0]->offset ) },
+      'q' => sub { $_[0]->{tz}->name },
+      'Z' => sub { $_[0]->{tz}->short_name_for_datetime( $_[0] ) },
+      '%' => sub { '%' },
+    );
+
+$FORMATS{h} = $FORMATS{b};
 
 
 sub new {
     my $class = shift;
 	my %args = validate( @_, {	pattern		=> { type => SCALAR },
-								time_zone	=> { type => SCALAR | OBJECT, default => 'local' },
+								time_zone	=> { type => SCALAR | OBJECT, optional => 1 },
 								language	=> { type => SCALAR | OBJECT, default => 'English' },
 								diagnostic	=> { type => SCALAR , default => 0 },
                              }
@@ -36,9 +197,15 @@ sub new {
 		($args{language}) = ref($args{_language}) =~/::(\w+)[^:]+$/
 	}
 	
-	unless (ref ($args{time_zone})) {
-		$args{time_zone} = DateTime::TimeZone->new( name => $args{time_zone} )
-			or croak "Could not create language from $args{language}";
+	if ($args{time_zone}) {
+		unless (ref ($args{time_zone})) {
+			$args{time_zone} = DateTime::TimeZone->new( name => $args{time_zone} )
+				or croak "Could not create language from $args{language}";
+		}
+		$args{set_time_zone} = $args{time_zone};
+	} else {
+		$args{time_zone} = DateTime::TimeZone->new( name => 'UTC' );
+		$args{set_time_zone} = '';
 	}
 	
 	# Deal with the parser
@@ -92,6 +259,7 @@ sub time_zone {
 			carp "Could not create time zone from $time_zone. Leaving old time zone intact.";
 		} else {
 			$self->{time_zone} = $possible_time_zone;
+			$self->{set_time_zone} = $self->{time_zone};
 		}
 	}
 	return $self->{time_zone}->name;	
@@ -100,6 +268,8 @@ sub time_zone {
 
 sub parse_datetime {
     my ( $self, $time_string ) = @_;
+	
+	local $^W = undef;
 
 	# Variables from the parser
 	my (	$dow_name, 		$month_name,	$century, 		$day, 
@@ -107,15 +277,16 @@ sub parse_datetime {
 			$minute, 		$ampm, 			$second, 		$week_sun_0, 
 			$dow_sun_0,		$dow_mon_1,		$week_mon_1,	$year_100,
 			$year,			$iso_week_year_100,				$iso_week_year,
-			$epoch,			$tz_offset,		$timezone,
+			$epoch,			$tz_offset,		$timezone,		$tz_olsen,
+			$nanosecond,
 			
-			$doy_dt,		$epoch_dt
+			$doy_dt,		$epoch_dt, 		$use_timezone,
 		);
-	
+			
 	# Variables for DateTime
 	my (	$Year,			$Month,			$Day,
-			$Hour,			$Minute,		$Second,
-		);
+			$Hour,			$Minute,		$Second,		$Nanosecond,
+		) = ();
 	
 	# Locale-ize the parser
 	my $locale_parser = $self->{parser};
@@ -143,6 +314,7 @@ month       = $month
 minute      = $minute
 ampm        = $ampm
 second      = $second
+nanosecond  = $nanosecond
 week_sun_0  = $week_sun_0
 dow_sun_0   = $dow_sun_0
 dow_mon_1   = $dow_mon_1
@@ -150,6 +322,7 @@ week_mon_1  = $week_mon_1
 year_100    = $year_100
 year        = $year		
 tz_offset   = $tz_offset
+tz_olsen    = $tz_olsen
 timezone    = $timezone
 epoch       = $epoch
 iso_week_year     = $iso_week_year
@@ -172,6 +345,7 @@ iso_week_year_100 = $iso_week_year_100
 			($self->{parser}=~/\$minute\b/ and $minute eq '') or 
 			($self->{parser}=~/\$ampm\b/ and $ampm eq '') or 
 			($self->{parser}=~/\$second\b/ and $second eq '') or 
+			($self->{parser}=~/\$nanosecond\b/ and $nanosecond eq '') or 
 			($self->{parser}=~/\$week_sun_0\b/ and $week_sun_0 eq '') or 
 			($self->{parser}=~/\$dow_sun_0\b/ and $dow_sun_0 eq '') or 
 			($self->{parser}=~/\$dow_mon_1\b/ and $dow_mon_1 eq '') or 
@@ -179,23 +353,49 @@ iso_week_year_100 = $iso_week_year_100
 			($self->{parser}=~/\$year_100\b/ and $year_100 eq '') or 
 			($self->{parser}=~/\$year\b/ and $year eq '') or
 			($self->{parser}=~/\$tz_offset\b/ and $tz_offset eq '') or
+			($self->{parser}=~/\$tz_olsen\b/ and $tz_olsen eq '') or
 			($self->{parser}=~/\$timezone\b/ and $timezone eq '') or
 			($self->{parser}=~/\$epoch\b/ and $epoch eq '')
 		); 
 		
+	# Create a timezone to work with
+	if ($tz_offset) {
+		$use_timezone = $tz_offset;
+	}
+	
+	if ($timezone) {
+		croak "I don't recognise the timezone $timezone." unless $ZONEMAP{$timezone};
+		croak "The timezone '$timezone' is ambiguous." if $ZONEMAP{$timezone} eq 'Ambiguous' and not ($tz_offset or $tz_olsen);
+		croak "Your timezones ('$tz_offset' and '$timezone') do not match." if $tz_offset and $ZONEMAP{$timezone} ne 'Ambiguous' and $ZONEMAP{$timezone} != $tz_offset;
+		$use_timezone = $ZONEMAP{$timezone} if $ZONEMAP{$timezone} ne 'Ambiguous';
+	}
+	
+	if ($tz_olsen) {
+		$tz_olsen = ucfirst lc $tz_olsen;
+		$tz_olsen =~ s|/(\w)|/\U$1|;
+		my $tz = DateTime::TimeZone->new( name => $tz_olsen );
+		croak "I son't recognise the time zone '$tz_olsen'." unless $tz;
+		$use_timezone = $tz;
+	}
+	
+	$use_timezone = $self->{time_zone} unless ($use_timezone);
+	
+	print "Using timezone $use_timezone.\n" if $self->{diagnostic};
+		
 	# If there's an epoch, we're done. Just need to check all the others
 	if ($epoch) {
-		$epoch_dt = DateTime->from_epoch( epoch => $epoch, time_zone => $self->{time_zone} );
+		$epoch_dt = DateTime->from_epoch( epoch => $epoch, time_zone => $use_timezone );
 
-		$Year   = $epoch_dt->year;
-		$Month  = $epoch_dt->month;
-		$Day    = $epoch_dt->day;
+		$Year      = $epoch_dt->year;
+		$Month     = $epoch_dt->month;
+		$Day       = $epoch_dt->day;
 
-		$Hour   = $epoch_dt->hour;
-		$Minute = $epoch_dt->minute;
-		$Second = $epoch_dt->second;
+		$Hour      = $epoch_dt->hour;
+		$Minute    = $epoch_dt->minute;
+		$Second    = $epoch_dt->second;
+		$Nanosecond= $epoch_dt->nanosecond;
 		
-		print $epoch_dt->strftime("Epoch: %D %T\n") if $self->{diagnostic};
+		print $epoch_dt->strftime("Epoch: %D %T.%N\n") if $self->{diagnostic};
 	}
 
 	# Work out the year we're working with:
@@ -254,7 +454,7 @@ iso_week_year_100 = $iso_week_year_100
 	croak "Your month value does not match your epoch." if $epoch_dt and $Month and $Month != $epoch_dt->month;
 	if ($doy) {
 		croak "There is no use providing a day of the year without providing a year." unless $Year;
-		$doy_dt = DateTime->new(year=>$Year, day=>$doy, time_zone => $self->{time_zone});
+		$doy_dt = DateTime->new(year=>$Year, day=>$doy, time_zone => $use_timezone);
 		my $month = $doy_dt->month;
 		croak "Your day of the year ($doy - in ".$doy_dt->month_name.") is not in your month ($Month)" if $Month and $month != $Month;
 		$Month = $month;
@@ -272,7 +472,7 @@ iso_week_year_100 = $iso_week_year_100
 			: '';
 	if ($Day) {
 		croak "There is no use providing a day without providing a month and year." unless $Year and $Month;
-		my $dt = DateTime->new(year=>$Year, month=>$Month, day=>$Day, time_zone => $self->{time_zone}); 
+		my $dt = DateTime->new(year=>$Year, month=>$Month, day=>$Day, time_zone => $use_timezone); 
 		croak "There is no day $Day in $dt->month_name, $Year" 
 			unless $dt->month == $Month;
 	}
@@ -287,7 +487,7 @@ iso_week_year_100 = $iso_week_year_100
 		if ($hour_12) {
 			$hour_12 += 12 if $hour_12 and $hour_12 != 12;
 		}
-		croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") if $hour_24 ne '' and $hour_24 < 12;
+		croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") if $hour_24 and $hour_24 < 12;
 	} elsif ($ampm=~/a/i) {
 		if ($hour_12) {
 			$hour_12 = 0 if $hour_12 == 12;
@@ -303,30 +503,42 @@ iso_week_year_100 = $iso_week_year_100
 		$Hour = $hour_24;
 	}
 	croak "Your hour does not match your epoch." if $epoch_dt and $Hour and $Hour != $epoch_dt->hour;
-	
+	print "Set hour to $Hour.\n" if $self->{diagnostic}; 
 	
 	# Minutes
 	croak("$minute is too large to be a minute.") unless $minute <= 59;
 	$Minute = $minute;
 	croak "Your minute does not match your epoch." if $epoch_dt and $Minute and $Minute != $epoch_dt->minute;
+	print "Set minute to $Minute.\n" if $self->{diagnostic}; 
 	
 	
 	# Seconds
 	croak("$second is too large to be a second.") unless $second <= 59; #OK so leap seconds will break!
 	$Second = $second;
 	croak "Your second does not match your epoch." if $epoch_dt and $Second and $Second != $epoch_dt->second;
+	print "Set second to $Second.\n" if $self->{diagnostic}; 
+	
+	
+	# Nanoeconds
+	croak("$nanosecond is too large to be a nanosecond.") unless length($nanosecond) <= 9;
+	$Nanosecond = $nanosecond;
+	$Nanosecond .= '0' while length($Nanosecond) < 9;
+#	Epoch doesn't return nanoseconds
+#	croak "Your nanosecond does not match your epoch." if $epoch_dt and $Nanosecond and $Nanosecond != $epoch_dt->nanosecond;
+	print "Set nanosecond to $Nanosecond.\n" if $self->{diagnostic}; 
 	
     my $potential_return = DateTime->new(
-    	year		=> ($Year	|| 1),
-    	month		=> ($Month	|| 1),
-    	day			=> ($Day	|| 1),
+    	year		=> ($Year		|| 1),
+    	month		=> ($Month		|| 1),
+    	day			=> ($Day		|| 1),
 
-    	hour		=> ($Hour	|| 0),
-    	minute		=> ($Minute	|| 0),
-    	second		=> ($Second || 0),
+    	hour		=> ($Hour		|| 0),
+    	minute		=> ($Minute     || 0),
+    	second		=> ($Second     || 0),
+    	nanosecond	=> ($Nanosecond || 0),
     	
     	language	=>	$self->{language},
-    	time_zone	=>	$self->{time_zone},
+    	time_zone	=>	$use_timezone,
 	);
 	
 	croak ("Your day of the week ($dow_mon_1) does not match the date supplied: ".$potential_return->ymd) if $dow_mon_1 and $potential_return->dow != $dow_mon_1;
@@ -364,6 +576,12 @@ iso_week_year_100 = $iso_week_year_100
 	croak ("Your ISO week year ($iso_week_year) does not match the date supplied: ".$potential_return->ymd) if $iso_week_year and $potential_return->strftime('%G') != $iso_week_year;
 	croak ("Your ISO week year ($iso_week_year_100) does not match the date supplied: ".$potential_return->ymd) if $iso_week_year_100 and $potential_return->strftime('%g') != $iso_week_year_100;
 	
+	# Move into the timezone in the object - if there is one
+	print "Potential Datetime: " . $potential_return->strftime("%F %T %z %Z") . "\n" if $self->{diagnostic};
+	print "Setting timezone: " . $self->{set_time_zone} . "\n" if $self->{diagnostic};
+	$potential_return->set_time_zone($self->{set_time_zone}) if $self->{set_time_zone};
+	print "Actual Datetime: " . $potential_return->strftime("%F %T %z %Z") . "\n" if $self->{diagnostic};
+	
 	return $potential_return;
 }
 
@@ -373,22 +591,54 @@ sub parse_duration {
 
 sub format_datetime {
     my ( $self, $dt ) = @_;
-    return $dt->strftime($self->{pattern});
+	
+	local $^W = undef;
+
+    # make a copy or caller's scalars get munged
+    my $f = $self->{pattern};
+	$f =~  s/
+				%([%a-zA-Z])
+			/
+				$FORMATS{$1} ? $FORMATS{$1}->($dt) : $1
+			/sgex;
+
+	$f =~  s/
+				%(\d+)N
+			/
+				$FORMATS{N}->($dt, $1)
+			/sgex;
+
+	return $f
 }
 
 sub format_duration {
     croak "DateTime::Format::Strptime doesn't do durations.";
 }
 
+sub _format_nanosecs
+{
+    my $self = shift;
+    my $precision = shift;
+
+    my $ret = sprintf( "%09d", $self->{rd_nanosecs} );
+    return $ret unless $precision;   # default = 9 digits
+
+    # rd_nanosecs might contain a fractional separator
+    my ( $int, $frac ) = split /[.,]/, $self->{rd_nanosecs};
+    $ret .= $frac if $frac;
+
+    return substr( $ret, 0, $precision );
+}
+
+
+
 sub _build_parser {
 	my $regex = my $field_list = shift;
-	my @fields = $field_list =~ m/(%.)/g;
+	my @fields = $field_list =~ m/(%\d*.)/g;
 	$field_list = join('',@fields);
 
 	# I'm absoutely certain there's a better way to do this:
-	$regex=~s|/|\\\/|g;
-	$regex=~s|\.|\\\.|g;
-	$regex=~s|\-|\\\-|g;
+	$regex=~s|([/.-])|\\$1|g;
 	
 	$regex =~ s/%T/%H:%M:%S/g;
 	$field_list =~ s/%T/%H%M%S/g;
@@ -480,6 +730,10 @@ sub _build_parser {
 	$field_list =~ s/%S/#second#/g; 
 	# %S is the seconds [0-61]; leading zeros are permitted but not required.
 
+	$regex =~ s/%(\d*)N/($1) ? "(\\d{$1})" : "(\\d+)"/eg; 
+	$field_list =~ s/%\d*N/#nanosecond#/g; 
+	# %N is the nanoseconds (or sub seconds really)
+
 	$regex =~ s/%U/([\\d ]?\\d)/g; 
 	$field_list =~ s/%U/#week_sun_0#/g; 
 	# %U is the week number of the year (Sunday as the first day of the week) as a decimal number [0-53]; leading zeros are permitted but not required.
@@ -503,6 +757,10 @@ sub _build_parser {
 	$regex =~ s/%Y/(\\d{4})/g;
 	$field_list =~ s/%Y/#year#/g;
 	# is the year including the century (for example, 1998).
+
+	$regex =~ s|%q|(\\w+\\/\\w+)|g;
+	$field_list =~ s/%q/#tz_olsen#/g;
+	# Olsen Time zone.
 
 	$regex =~ s|%z|([+-]\\d{4})|g;
 	$field_list =~ s/%z/#tz_offset#/g;
@@ -571,7 +829,11 @@ a format and returns the DateTime object associated.
 =item * new( format=>$strptime_pattern )
 
 Creates the format object. You must specify a pattern, you can also
-specify a C<time_zone> and C<language>.
+specify a C<time_zone> and C<language>. If you specify a time zone,
+then any resulting DateTime object will be in that time zone. If you
+do not specify a time_zone paramter, but there is a time zone in the
+string you pass to parse_datetime, then the resulting DateTime will
+use that time zone.
 
 =back
 
@@ -606,6 +868,14 @@ When given a format, this method sets the object's format.
 
 This method returns the current format. (After processing as above)
 
+=item * time_zone($time_zone)
+
+When given a name, offset or DateTime::TimeZone object, this method
+sets the object's format. This effects the DateTime object returned
+by parse_datetime
+
+This method returns the current format. (After processing as above)
+
 =back
 
 =head1 EXPORTS
@@ -620,16 +890,17 @@ available:
 Given a format and a string this function will return a new C<DateTime>
 object.
 
-=item * strftime($strptime_pattern, $datetime)
+=item * strftime($strftime_pattern, $datetime)
 
 Given a format and a C<DateTime> object this function will return a
 formatted string.
 
 =back
 
-=head1 PATTERN TOKENS
+=head1 STRPTIME PATTERN TOKENS
 
-The following tokens are allowed in the format string:
+The following tokens are allowed in the format string for strptime
+(parse_datetime):
 
 =over 4
 
@@ -694,10 +965,18 @@ The minute (0-59).
 
 Arbitrary whitespace.
 
+=item * %N
+
+Nanoseconds. For other sub-second values use C<%[number]N>.
+
 =item * %p
 
 The equivalent of AM or PM according to the language in use. (See
 L<DateTime::Language>)
+
+=item * %q
+
+The time zone name from the Olsen database. Example 'Australia/Melbourne'
 
 =item * %r
 
@@ -769,21 +1048,7 @@ below]
 
 =item * strftime
 
-All references to strftime are just aliases to the C<DateTime->strftime>
-method. See C<DateTime> for more information
-
-=item * Time Zones
-
-While the tokens %z and %Z accept time zone information, these are not
-used. You must set your object's timezone if you set these. Why? Each
-has its own reason: %z is an offset, but we can't tell if we're in DST
-until too late, so we can't use it to create our object. %Z is an
-ambiguous name for a time zone. There's an EST in Australia and in the
-USA. To fix this ambiguity strftime should add a token for Olsen style
-time zones. Oh well! If anyone wants to take a look at time zone
-parsing, be my guest. It should be used for checking and creating the
-objects in the code. Then we should set_timezone back to the object's
-zone just before returning it.
+All references to strftime are now handled internally.
 
 =head1 SUPPORT
 
@@ -799,7 +1064,7 @@ problem is less likely to be neglected.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright E<copy> Rick Measham, 2003. All rights reserved.
+Copyright E<169> Rick Measham, 2003. All rights reserved.
 
 This library is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

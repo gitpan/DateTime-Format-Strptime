@@ -1,9 +1,9 @@
 Revision history for Perl module DateTime::Format::Strptime
 
 Note on version conventions:
-0.00.00
-|  |  |
-|  |  +- Minor Decimal
+0.0000
+|  | |
+|  | +- Minor Decimal
 |  +---- Major Decimal
 +------- Whole Number
 
@@ -40,4 +40,12 @@ Note on version conventions:
 		  testing the test
 		- Added a linebreak to the end of the MANIFEST
 
-
+1.0100 Sun, 11 May 2003 13:54:36 + 1000
+	- the 'nanozone' release
+		- If we have the latest DateTime we run the test mentioned above
+		- Fixed my version format as advised by Iain Truskett
+		  if it still doesn't work it's because of me, not him
+		- Added the ability to handle nanoseconds as requested by 
+		  Michael Goltze.
+		- Got Time Zones working, including mapping non-ambiguous TLAs
+		  offsets and Olsen names (the latter uses the %q token)
