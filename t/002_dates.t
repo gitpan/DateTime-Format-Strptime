@@ -71,6 +71,6 @@ SKIP: {
 }
 
 $object->time_zone('Australia/Perth');
-$object->pattern('%Y %H:%M:%S %q');
-is($object->format_datetime( $object->parse_datetime( '2003 23:45:56 Australia/Melbourne' ) ), '2003 20:45:56 Australia/Perth', $object->pattern);
+$object->pattern('%Y %H:%M:%S %Z');
+is($object->format_datetime( $object->parse_datetime( '2003 23:45:56 MDT' ) ), '2003 13:45:56 WST', $object->pattern);
 

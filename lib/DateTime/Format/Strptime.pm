@@ -4,18 +4,16 @@ use strict;
 use DateTime;
 use DateTime::Language;
 use DateTime::TimeZone;
-use Params::Validate qw( validate SCALAR BOOLEAN OBJECT );
+use Params::Validate qw( validate SCALAR BOOLEAN OBJECT CODEREF );
 use Carp;
 
 use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
 
 @ISA = 'Exporter';
-$VERSION = '1.02';
+$VERSION = '1.03';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
-
-$CROAK = 1;
 
 %ZONEMAP = (
      'A' => '+0100',       'ACDT' => '+1030',       'ACST' => '+0930',     
@@ -123,92 +121,27 @@ $CROAK = 1;
   'YEKT' => '+0500',        'YST' => '-0900',          'Z' => '+0000',     
 );
 
-%FORMATS =
-    ( 'a' => sub { $_[0]->day_abbr },
-      'A' => sub { $_[0]->day_name },
-      'b' => sub { $_[0]->month_abbr },
-      'B' => sub { $_[0]->month_name },
-#      'c' => sub { $_[0]->strftime( $_[0]->{language}->preferred_datetime_format ) },
-      'C' => sub { int( $_[0]->year / 100 ) },
-      'd' => sub { sprintf( '%02d', $_[0]->day_of_month ) },
-      'D' => sub { $_[0]->strftime( '%m/%d/%y' ) },
-      'e' => sub { sprintf( '%2d', $_[0]->day_of_month ) },
-      'F' => sub { $_[0]->ymd('-') },
-      'g' => sub { substr( $_[0]->week_year, -2 ) },
-      'G' => sub { $_[0]->week_year },
-      'H' => sub { sprintf( '%02d', $_[0]->hour ) },
-      'i' => sub { sprintf( '%2d', int($_[0]->day / 7)+1 )},
-      'I' => sub { my $h = $_[0]->hour; $h -= 12 if $h >= 12; sprintf( '%02d', $h ) },
-      'J' => sub { int(($_[0]->day - 1) / 7) + 1 },
-      'j' => sub { $_[0]->day_of_year },
-      'k' => sub { sprintf( '%2d', $_[0]->hour ) },
-      'K' => sub { sprintf( '%02d', $_[0]->hour + 1 ) },
-      'l' => sub { my $h = $_[0]->hour; $h -= 12 if $h >= 12; $h=12 if $h==0; sprintf( '%2d', $h ) },
-      'L' => sub { my $h = $_[0]->hour; $h -= 12 if $h > 12; sprintf( '%2d', $h ) },
-      'm' => sub { sprintf( '%02d', $_[0]->month ) },
-      'M' => sub { sprintf( '%02d', $_[0]->minute ) },
-      'n' => sub { "\n" }, # should this be OS-sensitive?
-      'N' => \&_format_nanosecs,
-      'p' => sub { $_[0]->{language}->am_pm( $_[0] ) },
-      'P' => sub { lc $_[0]->{language}->am_pm( $_[0] ) },
-      'q' => sub { $_[0]->{tz}->name },
-      'Q' => sub { ($_[0]->year > 0) ? 'AD' : 'BC' },
-      'r' => sub { $_[0]->strftime( '%I:%M:%S %p' ) },
-      'R' => sub { $_[0]->strftime( '%H:%M' ) },
-      's' => sub { $_[0]->epoch },
-      'S' => sub { sprintf( '%02d', $_[0]->second ) },
-      't' => sub { "\t" },
-      'T' => sub { $_[0]->strftime( '%H:%M:%S' ) },
-      'u' => sub { $_[0]->day_of_week },
-      # algorithm from Date::Format::wkyr
-      'U' => sub { my $dow = $_[0]->day_of_week;
-                   $dow = 0 if $dow == 7; # convert to 0-6, Sun-Sat
-                   my $doy = $_[0]->day_of_year - 1;
-                   return int( ( $doy - $dow + 13 ) / 7 - 1 )
-                 },
-      'w' => sub { my $dow = $_[0]->day_of_week;
-                   return $dow % 7;
-                 },
-      'W' => sub { my $dow = $_[0]->day_of_week;
-                   my $doy = $_[0]->day_of_year - 1;
-                   return int( ( $doy - $dow + 13 ) / 7 - 1 )
-                 },
-#      'x' => sub { $_[0]->strftime( $_[0]->{language}->preferred_date_format ) },
-#      'X' => sub { $_[0]->strftime( $_[0]->{language}->preferred_time_format ) },
-      'y' => sub { sprintf( '%02d', substr( $_[0]->year, -2 ) ) },
-      'Y' => sub { return $_[0]->year },
-      'z' => sub { DateTime::TimeZone::offset_as_string( $_[0]->offset ) },
-      'Z' => sub { $_[0]->{tz}->short_name_for_datetime( $_[0] ) },
-      '%' => sub { '%' },
-    );
-
-$FORMATS{h} = $FORMATS{b};
-
-sub local_croak {
-	$CROAK and croak($_[0]);
-	$errmsg = $_[0];
-	return ! $CROAK;
-}
-sub local_carp {
-	$CROAK and carp($_[0]);
-	$errmsg = $_[0];
-	return ! $CROAK;
-}
-
 sub new {
     my $class = shift;
 	my %args = validate( @_, {	pattern		=> { type => SCALAR },
 								time_zone	=> { type => SCALAR | OBJECT, optional => 1 },
 								language	=> { type => SCALAR | OBJECT, default => 'English' },
-								diagnostic	=> { type => SCALAR , default => 0 },
+								on_error	=> { type => SCALAR | CODEREF, default => 'undef' },
+								diagnostic	=> { type => SCALAR, default => 0 },
                              }
                        );
+	
+	croak("The value supplied to on_error must be either 'croak', 'undef' or a code reference.") 
+		unless ref($args{on_error}) eq 'CODE' 
+			or $args{on_error} eq 'croak' 
+			or $args{on_error} eq 'undef';
+
 
 	# Deal with language
 	unless (ref ($args{language})) {
 		my $language = DateTime::Language->new(language => $args{language});
 		
-		local_croak("Could not create language from $args{language}") and return undef unless $language;
+		croak("Could not create language from $args{language}") unless $language;
 
 		$args{_language} = $language;
 	} else {
@@ -220,7 +153,7 @@ sub new {
 		unless (ref ($args{time_zone})) {
 			$args{time_zone} = DateTime::TimeZone->new( name => $args{time_zone} );
 			
-			local_croak("Could not create time zone from $args{time_zone}") and return undef unless $args{time_zone};
+			croak("Could not create time zone from $args{time_zone}") unless $args{time_zone};
 		}
 		$args{set_time_zone} = $args{time_zone};
 	} else {
@@ -232,7 +165,7 @@ sub new {
 	$args{parser} = _build_parser($args{pattern});
 		
 	if ($args{parser}=~/(%[^\/])/) {
-		local_croak("Unidentified token in pattern: $1 in $args{pattern}") and return undef;
+		croak("Unidentified token in pattern: $1 in $args{pattern}");
 	}
 	
     return bless \%args, $class;
@@ -244,8 +177,8 @@ sub pattern {
 	
 	if ($pattern) {
 		my $possible_pattern = _build_parser($pattern);
-		if ($possible_pattern=~/(%[^\/])/) {
-			local_carp("Unidentified token in pattern: $1 in $pattern. Leaving old pattern intact.") and return undef;
+		if ($possible_pattern=~/(%\{\w+\}|%\w)/) {
+			$self->local_carp("Unidentified token in pattern: $1 in $pattern. Leaving old pattern intact.") and return undef;
 		} else {
 			$self->{parser} = $possible_pattern;
 			$self->{pattern} = $pattern;
@@ -261,7 +194,7 @@ sub language {
 	if ($language) {
 		my $possible_language = DateTime::Language->new(language => $language);
 		unless ($possible_language) {
-			local_carp("Could not create language from $language. Leaving old language intact.") and return undef;
+			$self->local_carp("Could not create language from $language. Leaving old language intact.") and return undef;
 		} else {
 			$self->{language} = $language;
 			$self->{_language} = $possible_language;
@@ -277,7 +210,7 @@ sub time_zone {
 	if ($time_zone) {
 		my $possible_time_zone = DateTime::TimeZone->new( name => $time_zone );
 		unless ($possible_time_zone) {
-			local_carp("Could not create time zone from $time_zone. Leaving old time zone intact.") and return undef;
+			$self->local_carp("Could not create time zone from $time_zone. Leaving old time zone intact.") and return undef;
 		} else {
 			$self->{time_zone} = $possible_time_zone;
 			$self->{set_time_zone} = $self->{time_zone};
@@ -298,7 +231,7 @@ sub parse_datetime {
 			$minute, 		$ampm, 			$second, 		$week_sun_0, 
 			$dow_sun_0,		$dow_mon_1,		$week_mon_1,	$year_100,
 			$year,			$iso_week_year_100,				$iso_week_year,
-			$epoch,			$tz_offset,		$timezone,		$tz_olsen,
+			$epoch,			$tz_offset,		$timezone,		$tz_olson,
 			$nanosecond,
 			
 			$doy_dt,		$epoch_dt, 		$use_timezone,
@@ -343,7 +276,7 @@ week_mon_1  = $week_mon_1
 year_100    = $year_100
 year        = $year		
 tz_offset   = $tz_offset
-tz_olsen    = $tz_olsen
+tz_olson    = $tz_olson
 timezone    = $timezone
 epoch       = $epoch
 iso_week_year     = $iso_week_year
@@ -353,7 +286,7 @@ iso_week_year_100 = $iso_week_year_100
 	
 	}
 
-	local_croak("Your datetime does not match your pattern.") and return undef
+	$self->local_croak("Your datetime does not match your pattern.") and return undef
 		if (
 			($self->{parser}=~/\$dow_name\b/ and $dow_name eq '') or 
 			($self->{parser}=~/\$month_name\b/ and $month_name eq '') or 
@@ -374,7 +307,7 @@ iso_week_year_100 = $iso_week_year_100
 			($self->{parser}=~/\$year_100\b/ and $year_100 eq '') or 
 			($self->{parser}=~/\$year\b/ and $year eq '') or
 			($self->{parser}=~/\$tz_offset\b/ and $tz_offset eq '') or
-			($self->{parser}=~/\$tz_olsen\b/ and $tz_olsen eq '') or
+			($self->{parser}=~/\$tz_olson\b/ and $tz_olson eq '') or
 			($self->{parser}=~/\$timezone\b/ and $timezone eq '') or
 			($self->{parser}=~/\$epoch\b/ and $epoch eq '')
 		); 
@@ -385,17 +318,17 @@ iso_week_year_100 = $iso_week_year_100
 	}
 	
 	if ($timezone) {
-		local_croak("I don't recognise the timezone $timezone.") and return undef unless $ZONEMAP{$timezone};
-		local_croak("The timezone '$timezone' is ambiguous.") and return undef if $ZONEMAP{$timezone} eq 'Ambiguous' and not ($tz_offset or $tz_olsen);
-		local_croak("Your timezones ('$tz_offset' and '$timezone') do not match.") and return undef if $tz_offset and $ZONEMAP{$timezone} ne 'Ambiguous' and $ZONEMAP{$timezone} != $tz_offset;
+		$self->local_croak("I don't recognise the timezone $timezone.") and return undef unless $ZONEMAP{$timezone};
+		$self->local_croak("The timezone '$timezone' is ambiguous.") and return undef if $ZONEMAP{$timezone} eq 'Ambiguous' and not ($tz_offset or $tz_olson);
+		$self->local_croak("Your timezones ('$tz_offset' and '$timezone') do not match.") and return undef if $tz_offset and $ZONEMAP{$timezone} ne 'Ambiguous' and $ZONEMAP{$timezone} != $tz_offset;
 		$use_timezone = $ZONEMAP{$timezone} if $ZONEMAP{$timezone} ne 'Ambiguous';
 	}
 	
-	if ($tz_olsen) {
-		$tz_olsen = ucfirst lc $tz_olsen;
-		$tz_olsen =~ s|/(\w)|/\U$1|;
-		my $tz = DateTime::TimeZone->new( name => $tz_olsen );
-		local_croak("I don't recognise the time zone '$tz_olsen'.") and return undef unless $tz;
+	if ($tz_olson) {
+		$tz_olson = ucfirst lc $tz_olson;
+		$tz_olson =~ s|/(\w)|/\U$1|;
+		my $tz = DateTime::TimeZone->new( name => $tz_olson );
+		$self->local_croak("I don't recognise the time zone '$tz_olson'.") and return undef unless $tz;
 		$use_timezone = $tz;
 	}
 	
@@ -432,16 +365,16 @@ iso_week_year_100 = $iso_week_year_100
 		}
 	}
 	if ($year) {
-		local_croak("Your two year values ($year_100 and $year) do not match.") and return undef if ($Year && ($year != $Year));
+		$self->local_croak("Your two year values ($year_100 and $year) do not match.") and return undef if ($Year && ($year != $Year));
 		$Year = $year;
 	}
-	local_croak("Your year value does not match your epoch.") and return undef if $epoch_dt and $Year and $Year != $epoch_dt->year;
+	$self->local_croak("Your year value does not match your epoch.") and return undef if $epoch_dt and $Year and $Year != $epoch_dt->year;
 	
 	
 	# Work out which month we want
 	# Month names
 	if ($month_name) {
-		local_croak("There is no use providing a month name ($month_name) without providing a year.") and return undef unless $Year;
+		$self->local_croak("There is no use providing a month name ($month_name) without providing a year.") and return undef unless $Year;
 		my $month_count  = 0;
 		my $month_number = 0;
 		foreach my $month (@{$self->{_language}->month_names}) {
@@ -462,86 +395,89 @@ iso_week_year_100 = $iso_week_year_100
 			}
 		}
 		unless ($month_number) {
-			local_croak("$month_name is not a recognised month in this language.") and return undef;
+			$self->local_croak("$month_name is not a recognised month in this language.") and return undef;
 		}
 		$Month = $month_number;
 	}
 	if ($month) {
-		local_croak("There is no use providing a month without providing a year.") and return undef unless $Year;
-		local_croak("$month is too large to be a month of the year.") and return undef unless $month <= 12;
-		local_croak("Your two month values ($month_name and $month) do not match.") and return undef if $Month and $month != $Month;
+		$self->local_croak("There is no use providing a month without providing a year.") and return undef unless $Year;
+		$self->local_croak("$month is too large to be a month of the year.") and return undef unless $month <= 12;
+		$self->local_croak("Your two month values ($month_name and $month) do not match.") and return undef if $Month and $month != $Month;
 		$Month = $month;
 	}
-	local_croak("Your month value does not match your epoch.") and return undef if $epoch_dt and $Month and $Month != $epoch_dt->month;
+	$self->local_croak("Your month value does not match your epoch.") and return undef if $epoch_dt and $Month and $Month != $epoch_dt->month;
 	if ($doy) {
-		local_croak("There is no use providing a day of the year without providing a year.") and return undef unless $Year;
-		$doy_dt = DateTime->new(year=>$Year, day=>$doy, time_zone => $use_timezone);
+		$self->local_croak("There is no use providing a day of the year without providing a year.") and return undef unless $Year;
+		$doy_dt = ($DateTime::VERSION > 0.12) 
+			? DateTime->from_day_of_year(year=>$Year, day_of_year=>$doy, time_zone => $use_timezone)
+			: DateTime->new(year=>$Year, day=>$doy, time_zone => $use_timezone);
+
 		my $month = $doy_dt->month;
-		local_croak("Your day of the year ($doy - in ".$doy_dt->month_name.") is not in your month ($Month)") and return undef if $Month and $month != $Month;
+		$self->local_croak("Your day of the year ($doy - in ".$doy_dt->month_name.") is not in your month ($Month)") and return undef if $Month and $month != $Month;
 		$Month = $month;
 	}
-	local_croak("Your day of the year does not match your epoch.") and return undef if $epoch_dt and $doy_dt and $doy_dt->doy != $epoch_dt->doy;
+	$self->local_croak("Your day of the year does not match your epoch.") and return undef if $epoch_dt and $doy_dt and $doy_dt->doy != $epoch_dt->doy;
 	
 	
 	# Day of the month
-	local_croak("$day is too large to be a day of the month.") and return undef unless $day <= 31;
-	local_croak("Your day of the month ($day) does not match your day of the year.") and return undef if $doy_dt and $day and $day != $doy_dt->day;
+	$self->local_croak("$day is too large to be a day of the month.") and return undef unless $day <= 31;
+	$self->local_croak("Your day of the month ($day) does not match your day of the year.") and return undef if $doy_dt and $day and $day != $doy_dt->day;
 	$Day = ($day) 
 		? $day
 		: ($doy_dt)
 			? $doy_dt->day
 			: '';
 	if ($Day) {
-		local_croak("There is no use providing a day without providing a month and year.") and return undef unless $Year and $Month;
+		$self->local_croak("There is no use providing a day without providing a month and year.") and return undef unless $Year and $Month;
 		my $dt = DateTime->new(year=>$Year, month=>$Month, day=>$Day, time_zone => $use_timezone); 
-		local_croak("There is no day $Day in $dt->month_name, $Year") and return undef 
+		$self->local_croak("There is no day $Day in $dt->month_name, $Year") and return undef 
 			unless $dt->month == $Month;
 	}
-	local_croak("Your day of the month does not match your epoch.") and return undef if $epoch_dt and $Day and $Day != $epoch_dt->day;
+	$self->local_croak("Your day of the month does not match your epoch.") and return undef if $epoch_dt and $Day and $Day != $epoch_dt->day;
 	
 	
 	# Hour of the day
-	local_croak("$hour_24 is too large to be an hour of the day.") and return undef unless $hour_24 <= 23; #OK so leap seconds will break!
-	local_croak("$hour_12 is too large to be an hour of the day.") and return undef unless $hour_12 <= 12;
-	local_croak("You must specify am or pm for 12 hour clocks ($hour_12|$ampm).") and return undef if ($hour_12 && (! $ampm));
+	$self->local_croak("$hour_24 is too large to be an hour of the day.") and return undef unless $hour_24 <= 23; #OK so leap seconds will break!
+	$self->local_croak("$hour_12 is too large to be an hour of the day.") and return undef unless $hour_12 <= 12;
+	$self->local_croak("You must specify am or pm for 12 hour clocks ($hour_12|$ampm).") and return undef if ($hour_12 && (! $ampm));
 	if ($ampm=~/p/i) {
 		if ($hour_12) {
 			$hour_12 += 12 if $hour_12 and $hour_12 != 12;
 		}
-		local_croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") and return undef if $hour_24 and $hour_24 < 12;
+		$self->local_croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") and return undef if $hour_24 and $hour_24 < 12;
 	} elsif ($ampm=~/a/i) {
 		if ($hour_12) {
 			$hour_12 = 0 if $hour_12 == 12;
 		}
-		local_croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") and return undef if $hour_24 >= 12;
+		$self->local_croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") and return undef if $hour_24 >= 12;
 	}
 	if ($hour_12 and $hour_24) {
-		local_croak("You have specified mis-matching 12 and 24 hour clock information") and return undef unless $hour_12 == $hour_24;
+		$self->local_croak("You have specified mis-matching 12 and 24 hour clock information") and return undef unless $hour_12 == $hour_24;
 		$Hour = $hour_24;
 	} elsif ($hour_12) {
 		$Hour = $hour_12;
 	} elsif ($hour_24) {
 		$Hour = $hour_24;
 	}
-	local_croak("Your hour does not match your epoch.") and return undef if $epoch_dt and $Hour and $Hour != $epoch_dt->hour;
+	$self->local_croak("Your hour does not match your epoch.") and return undef if $epoch_dt and $Hour and $Hour != $epoch_dt->hour;
 	print "Set hour to $Hour.\n" if $self->{diagnostic}; 
 	
 	# Minutes
-	local_croak("$minute is too large to be a minute.") and return undef unless $minute <= 59;
+	$self->local_croak("$minute is too large to be a minute.") and return undef unless $minute <= 59;
 	$Minute = $minute;
-	local_croak("Your minute does not match your epoch.") and return undef if $epoch_dt and $Minute and $Minute != $epoch_dt->minute;
+	$self->local_croak("Your minute does not match your epoch.") and return undef if $epoch_dt and $Minute and $Minute != $epoch_dt->minute;
 	print "Set minute to $Minute.\n" if $self->{diagnostic}; 
 	
 	
 	# Seconds
-	local_croak("$second is too large to be a second.") and return undef unless $second <= 59; #OK so leap seconds will break!
+	$self->local_croak("$second is too large to be a second.") and return undef unless $second <= 59; #OK so leap seconds will break!
 	$Second = $second;
-	local_croak("Your second does not match your epoch.") and return undef if $epoch_dt and $Second and $Second != $epoch_dt->second;
+	$self->local_croak("Your second does not match your epoch.") and return undef if $epoch_dt and $Second and $Second != $epoch_dt->second;
 	print "Set second to $Second.\n" if $self->{diagnostic}; 
 	
 	
 	# Nanoeconds
-	local_croak("$nanosecond is too large to be a nanosecond.") and return undef unless length($nanosecond) <= 9;
+	$self->local_croak("$nanosecond is too large to be a nanosecond.") and return undef unless length($nanosecond) <= 9;
 	$Nanosecond = $nanosecond;
 	$Nanosecond .= '0' while length($Nanosecond) < 9;
 #	Epoch doesn't return nanoseconds
@@ -562,9 +498,9 @@ iso_week_year_100 = $iso_week_year_100
     	time_zone	=>	$use_timezone,
 	);
 	
-	local_croak("Your day of the week ($dow_mon_1) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_mon_1 and $potential_return->dow != $dow_mon_1;
+	$self->local_croak("Your day of the week ($dow_mon_1) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_mon_1 and $potential_return->dow != $dow_mon_1;
 
-	local_croak("Your day of the week ($dow_sun_0) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_sun_0 and ($potential_return->dow % 7) != $dow_sun_0;
+	$self->local_croak("Your day of the week ($dow_sun_0) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_sun_0 and ($potential_return->dow % 7) != $dow_sun_0;
 
 	if ($dow_name) {
 		my $dow_count  = 0;
@@ -587,15 +523,15 @@ iso_week_year_100 = $iso_week_year_100
 			}
 		}
 		unless ($dow_number) {
-			local_croak("$dow_name is not a recognised day in this language.") and return undef;
+			$self->local_croak("$dow_name is not a recognised day in this language.") and return undef;
 		}
-		local_croak("Your day of the week ($dow_name) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_number and $potential_return->dow != $dow_number;
+		$self->local_croak("Your day of the week ($dow_name) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_number and $potential_return->dow != $dow_number;
 	}
 	
-	local_croak("Your week number ($week_sun_0) does not match the date supplied: ".$potential_return->ymd) and return undef if $week_sun_0 and $potential_return->strftime('%U') != $week_sun_0;
-	local_croak("Your week number ($week_mon_1) does not match the date supplied: ".$potential_return->ymd) and return undef if $week_mon_1 and $potential_return->strftime('%W') != $week_mon_1;
-	local_croak("Your ISO week year ($iso_week_year) does not match the date supplied: ".$potential_return->ymd) and return undef if $iso_week_year and $potential_return->strftime('%G') != $iso_week_year;
-	local_croak("Your ISO week year ($iso_week_year_100) does not match the date supplied: ".$potential_return->ymd) and return undef if $iso_week_year_100 and $potential_return->strftime('%g') != $iso_week_year_100;
+	$self->local_croak("Your week number ($week_sun_0) does not match the date supplied: ".$potential_return->ymd) and return undef if $week_sun_0 and $potential_return->strftime('%U') != $week_sun_0;
+	$self->local_croak("Your week number ($week_mon_1) does not match the date supplied: ".$potential_return->ymd) and return undef if $week_mon_1 and $potential_return->strftime('%W') != $week_mon_1;
+	$self->local_croak("Your ISO week year ($iso_week_year) does not match the date supplied: ".$potential_return->ymd) and return undef if $iso_week_year and $potential_return->strftime('%G') != $iso_week_year;
+	$self->local_croak("Your ISO week year ($iso_week_year_100) does not match the date supplied: ".$potential_return->ymd) and return undef if $iso_week_year_100 and $potential_return->strftime('%g') != $iso_week_year_100;
 	
 	# Move into the timezone in the object - if there is one
 	print "Potential Datetime: " . $potential_return->strftime("%F %T %z %Z") . "\n" if $self->{diagnostic};
@@ -610,63 +546,23 @@ sub parse_duration {
     croak "DateTime::Format::Strptime doesn't do durations.";
 }
 
-sub _format($$) {
-	my ($output,$size) = @_;
-	$output=~s/^[ 0]+//;
-	if ($size >= length($output)) {
-		return sprintf("%${size}d",$output) if ($output=~/^\d+$/);
-		return sprintf("%${size}s",$output)
-	} else {
-		return substr($output,-1 * $size) if ($output=~/^\d+$/);
-		return substr($output, 0, $size);
-	}
-}
-
 sub format_datetime {
     my ( $self, $dt ) = @_;
-	
-	local $^W = undef;
-
-    # make a copy or caller's scalars get munged
-    my $f = $self->{pattern};
-	$f =~  s/
-				%(\d+)N
-			/
-				$FORMATS{N}->($dt, $1)
-			/sgex;
-	$f =~  s/
-				%(\-?\d+)?([%a-zA-Z])
-			/
-				$FORMATS{$2} ? ($1) ? _format($FORMATS{$2}->($dt),$1) : $FORMATS{$2}->($dt) : $1.$2
-			/sgex;
-	return $f
+	return $dt->strftime($self->pattern);
 }
 
 sub format_duration {
     croak "DateTime::Format::Strptime doesn't do durations.";
 }
 
-sub _format_nanosecs
-{
-    my $self = shift;
-    my $precision = shift;
-
-    my $ret = sprintf( "%09d", $self->{rd_nanosecs} );
-    return $ret unless $precision;   # default = 9 digits
-
-    # rd_nanosecs might contain a fractional separator
-    my ( $int, $frac ) = split /[.,]/, $self->{rd_nanosecs};
-    $ret .= $frac if $frac;
-
-    return substr( $ret, 0, $precision );
-}
-
 
 
 sub _build_parser {
 	my $regex = my $field_list = shift;
-	my @fields = $field_list =~ m/(%\d*.)/g;
+	my @fields = $field_list =~ m/(%\{\w+\}|%\d*.)/g;
 	$field_list = join('',@fields);
+	
+	my $tempdt = DateTime->now(); # Created just so we can do $tempdt->can(..)
 
 	# I'm absoutely certain there's a better way to do this:
 	$regex=~s|([/.-])|\\$1|g;
@@ -789,10 +685,6 @@ sub _build_parser {
 	$field_list =~ s/%Y/#year#/g;
 	# is the year including the century (for example, 1998).
 
-	$regex =~ s|%q|(\\w+\\/\\w+)|g;
-	$field_list =~ s/%q/#tz_olsen#/g;
-	# Olsen Time zone.
-
 	$regex =~ s|%z|([+-]\\d{4})|g;
 	$field_list =~ s/%z/#tz_offset#/g;
 	# Timezone Offset.
@@ -800,6 +692,10 @@ sub _build_parser {
 	$regex =~ s|%Z|(\\w+)|g;
 	$field_list =~ s/%Z/#timezone#/g;
 	# The short timezone name.
+	
+	$regex =~ s|%{(\w+)}|($tempdt->can($1)) ? "(.+)" : ".+"|eg;
+	$field_list =~ s|(%{(\w+)})|($tempdt->can($2)) ? "#$2#" : $1 |eg;
+	# Any function in DateTime.
 
 	$regex =~ s/%%/%/g;
 	$field_list =~ s/%%//g;
@@ -811,6 +707,27 @@ sub _build_parser {
 	return qq|($field_list) = \$time_string =~ /$regex/|;
 }
 
+# Utility functions
+
+sub local_croak {
+	my $self = $_[0];
+	return &{$self->{on_error}}(@_) if ref($self->{on_error});
+	croak($_[1]) if $self->{on_error} eq 'croak';
+	$self->{errmsg} = $_[1];
+	return ($self->{on_error} eq 'undef');
+}
+sub local_carp {
+	my $self = $_[0];
+	return &{$self->{on_error}}(@_) if ref($self->{on_error});
+	carp($_[1]) if $self->{on_error} eq 'croak';
+	$self->{errmsg} = $_[1];
+	return ($self->{on_error} eq 'undef');
+}
+
+sub errmsg {
+	$_[0]->{errmsg};
+}
+
 # Exportable functions:
 
 sub strftime {
@@ -820,7 +737,7 @@ sub strftime {
 
 sub strptime {
 	my ($pattern, $time_string) = @_;
-	return DateTime::Format::Strptime->new( pattern => $pattern )->parse_datetime($time_string);
+	return DateTime::Format::Strptime->new( pattern => $pattern, on_error=>'croak' )->parse_datetime($time_string);
 }
 
 
@@ -850,7 +767,12 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 	
   # Stop croak so interactions work:
 
-  $DateTime::Format::Strptime::CROAK = 0;
+  my $Strp = new DateTime::Format::Strptime(
+  				pattern 	=> '%T',
+  				language	=> 'English',
+  				time_zone	=> 'Melbourne/Australia',
+  				on_error	=> 'undef',
+  			);
 
   $pattern = $CGI->param('user_pattern');
 
@@ -858,7 +780,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
   $newpattern = $Strp->pattern($pattern); 
   
   unless $newpattern {
-      tell_user($DateTime::Format::Strptime::errmsg);
+      tell_user($Strp->errmsg);
   }
 
 =head1 DESCRIPTION
@@ -878,9 +800,42 @@ associated.
 Creates the format object. You must specify a pattern, you can also
 specify a C<time_zone> and C<language>. If you specify a time zone,
 then any resulting C<DateTime> object will be in that time zone. If you
-do not specify a C<time_zone> paramter, but there is a time zone in the
+do not specify a C<time_zone> parameter, but there is a time zone in the
 string you pass to C<parse_datetime>, then the resulting C<DateTime> will
 use that time zone.
+
+You can optionally use an on_error parameter. This parameter has three
+valid options:
+
+=over 4
+
+=item * 'undef' 
+
+(not undef, 'undef', it's a string not an undefined value)
+
+This is the default behavior. The module will return undef whenever it
+gets upset. The error can be accessed using the $object->errstr method.
+This is the ideal behaviour for interactive use where a user might
+provide an illegal pattern or a date that doesn't match the pattern.
+
+=item * 'croak' 
+
+(not croak, 'croak', it's a string, not a function)
+
+This used to be the default behaviour. The module will croak with an
+error message whenever it gets upset.
+
+=item * sub{...} or \&subname
+
+When given a code ref, the module will call that sub when it gets upset.
+The sub receives two parameters: the object and the error message. Using
+these two it is possible to emulate the 'undef' behavior. (Returning a
+true value causes the method to return undef. Returning a false value
+causes the method to bravely continue):
+
+sub{$_[0]->{errmsg} = $_[1]; 1},
+
+=back
 
 =back
 
@@ -935,30 +890,10 @@ If the time zone is invalid, the method will croak or return undef
 If successful this method returns the current pattern. (After processing
 as above)
 
-=back
+=item * errmsg
 
-=head1 VARIABLES
-
-=over 4
-
-=item * $DateTime::Format::Strptime::CROAK
-
-When true, Strptime will croak when it encounters an error. When false Strptime
-will return undef rather than croaking. 
-
-If you allowed a user to specify a pattern and they entered one that was
-non parsable, this module croaks, causing your script to croak. 
-
-If you set $DateTime::Format::StrpTime::CROAK to false, methods will
-return undef rather than croaking. $DateTime::Format::StrpTime::errmsg
-will tell you what went wrong. 
-
-The default is to croak. Set to false to turn off the croaking
-
-=item * $DateTime::Format::Strptime::errmsg
-
-If $DateTime::Format::Strptime::CROAK is false, error messages will be stored
-in here so you can work out why things went wrong. 
+If the on_error behavior of the object is 'undef', error messages with
+this method so you can work out why things went wrong.
 
 This code emulates $DateTime::Format::Strptime::CROAK being true:
 
@@ -1062,10 +997,6 @@ Nanoseconds. For other sub-second values use C<%[number]N>.
 The equivalent of AM or PM according to the language in use. (See
 L<DateTime::Language>)
 
-=item * %q
-
-The time zone name from the Olsen database. Example 'Australia/Melbourne'
-
 =item * %r
 
 Equivalent to %I:%M:%S %p.
@@ -1136,9 +1067,9 @@ below]
 
 =over 4
 
-=item * strftime
+=item * on_error
 
-All references to strftime are now handled internally.
+Default behavior of this module is now to return undef on erroring.
 
 =back
 

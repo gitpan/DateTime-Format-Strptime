@@ -88,5 +88,17 @@ Note on version conventions:
 		  to do this at the same time you change it to check the
 		  return values of the methods :)
 
+1.0300 Sat, 07 Jun 2003 10:40:23 +1000
+	- the 'Better way to die' release
+		- The above has changed by request of Dave Rolsky and Iain 
+		  Truskett (Thanks!). We now allow each object to have its
+		  own behavior. 
+		- The default behavior has been changed to returning undef.
+		  This was requested by someone (tell me if it was you!) and
+		  made a lot of sense to me.
+	- Never released to CPAN
 
-
+1.0301 Wed, 25 Jun 2003 22:40:12 +1000
+	- the 'Day of Year' release
+		- Updated to handle the post 0.12 DateTime that now
+		  validates dates. Still handles old DateTime.

@@ -1,6 +1,6 @@
 # t/002_basic.t - check module dates in various formats
 
-use Test::More tests => 6;
+use Test::More tests => 7;
 use DateTime::Format::Strptime;
 
 my $object = DateTime::Format::Strptime->new(
@@ -25,9 +25,11 @@ my @tests = (
 	['%D', '11/30/03', 'American Style Date'],
 	['%F', '2003-11-30', 'ISO Style Date'],
 
-	['%a %b %B %C %d %e %h %H %I %j %k %l %m %M %n %N %p %P %S %U %u %w %W %y %Y %s %G %g %z %Z %q %%', 
-	"Wed Nov November 20 05  5 Nov 23 11 309 23 11 11 34 \n 123456789 PM pm 45 44 3 3 44 03 2003 $epoch 2003 03 +1100 EST Australia/Melbourne %",
+	['%a %b %B %C %d %e %h %H %I %j %k %l %m %M %n %N %p %P %S %U %u %w %W %y %Y %s %G %g %z %Z %%', 
+	"Wed Nov November 20 05  5 Nov 23 11 309 23 11 11 34 \n 123456789 PM pm 45 44 3 3 44 03 2003 $epoch 2003 03 +1100 EST %",
 	"Every token at once"],
+	
+	['%{year}', '2003', 'Extended strftime %{} matching'],
 
 );
 
