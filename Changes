@@ -27,3 +27,7 @@ Note on version conventions:
 		- added tests
 		- should be 100% compatible with DateTime's strftime function
 		
+1.00.01 Mon, 28 Apr 2003 07:12:01 +1000
+	- the 'what the hell is that' release
+		- removed alien life-forms (characters that didn't ASCIIfy)
+	* No API change, just made it so it will install now!

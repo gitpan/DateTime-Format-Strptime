@@ -10,7 +10,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK );
 
 @ISA = 'Exporter';
-$VERSION = '1.00';
+$VERSION = '1.00.01';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
@@ -394,8 +394,8 @@ sub _build_parser {
 	$field_list =~ s/%T/%H%M%S/g;
 	# %T is the time as %H:%M:%S.
 
-	$regex =~ s/%r/%I:%M:%S %p/g;  
-	$field_list =~ s/%r/%I%M%S%p/g;  
+	$regex =~ s/%r/%I:%M:%S %p/g; 
+	$field_list =~ s/%r/%I%M%S%p/g; 
 	#is the time as %I:%M:%S %p.
 
 	$regex =~ s/%R/%H:%M/g;
@@ -410,8 +410,8 @@ sub _build_parser {
 	$field_list =~ s|%F|%Y%m%d|g;
 	#is the same as %Y-%m-%d - the ISO date format.
 
-	$regex =~ s/%a/(\\w+)/gi;  
-	$field_list =~ s/%a/#dow_name#/gi;  
+	$regex =~ s/%a/(\\w+)/gi; 
+	$field_list =~ s/%a/#dow_name#/gi; 
 	# %a is the day of the week, using the locale's weekday names; either the abbreviated or full name may be specified.
 	# %A is the same as %a.
 
@@ -421,7 +421,7 @@ sub _build_parser {
 	# %B is the same as %b.
 	# %h is the same as %b.
 
-	#s/%c//g;  
+	#s/%c//g; 
 	#is replaced by the locale's appropriate date and time representation.
 
 	$regex =~ s/%C/([\\d ]?\\d)/g;
@@ -433,38 +433,38 @@ sub _build_parser {
 	#is the day of the month [1,31]; leading zeros are permitted but not required.
 	#%e is the same as %d.
 
-	$regex =~ s/%[Hk]/([\\d ]?\\d)/g;  
-	$field_list =~ s/%[Hk]/#hour_24#/g;  
+	$regex =~ s/%[Hk]/([\\d ]?\\d)/g; 
+	$field_list =~ s/%[Hk]/#hour_24#/g; 
 	#is the hour (24-hour clock) [0,23]; leading zeros are permitted but not required.
 	# %k is the same as %H 
 
-	$regex =~ s/%g/([\\d ]?\\d)/g;  
-	$field_list =~ s/%g/#iso_week_year_100#/g;  
+	$regex =~ s/%g/([\\d ]?\\d)/g; 
+	$field_list =~ s/%g/#iso_week_year_100#/g; 
 	# The year corresponding to the ISO week number, but without the century (0-99). 
 
-	$regex =~ s/%G/(\\d{4})/g;  
-	$field_list =~ s/%G/#iso_week_year#/g;  
+	$regex =~ s/%G/(\\d{4})/g; 
+	$field_list =~ s/%G/#iso_week_year#/g; 
 	# The year corresponding to the ISO week number. 
 
-	$regex =~ s/%[Il]/([\\d ]?\\d)/g;  
-	$field_list =~ s/%[Il]/#hour_12#/g;  
+	$regex =~ s/%[Il]/([\\d ]?\\d)/g; 
+	$field_list =~ s/%[Il]/#hour_12#/g; 
 	#is the hour (12-hour clock) [1-12]; leading zeros are permitted but not required.
 	# %l is the same as %I.
 
-	$regex =~ s/%j/(\\d{1,3})/g;  
-	$field_list =~ s/%j/#doy#/g;  
+	$regex =~ s/%j/(\\d{1,3})/g; 
+	$field_list =~ s/%j/#doy#/g; 
 	#is the day of the year [1,366]; leading zeros are permitted but not required.
 
-	$regex =~ s/%m/([\\d ]?\\d)/g;  
-	$field_list =~ s/%m/#month#/g;  
+	$regex =~ s/%m/([\\d ]?\\d)/g; 
+	$field_list =~ s/%m/#month#/g; 
 	#is the month number [1-12]; leading zeros are permitted but not required.
 
 	$regex =~ s/%M/([\\d ]?\\d)/g;
 	$field_list =~ s/%M/#minute#/g;
 	#is the minute [0-59]; leading zeros are permitted but not required.
 
-	$regex =~ s/%[nt]/\\s+/g;  
-	$field_list =~ s/%[nt]//g;  
+	$regex =~ s/%[nt]/\\s+/g; 
+	$field_list =~ s/%[nt]//g; 
 	# %n is any white space.
 	# %t is any white space.
 
@@ -472,16 +472,16 @@ sub _build_parser {
 	$field_list =~ s/%p/#ampm#/gi;
 	# %p is the locale's equivalent of either A.M./P.M. indicator for 12-hour clock.
 
-	$regex =~ s/%s/(\\d+)/g;  
-	$field_list =~ s/%s/#epoch#/g;  
+	$regex =~ s/%s/(\\d+)/g; 
+	$field_list =~ s/%s/#epoch#/g; 
 	# %s is the seconds since the epoch
 
-	$regex =~ s/%S/([\\d ]?\\d)/g;  
-	$field_list =~ s/%S/#second#/g;  
+	$regex =~ s/%S/([\\d ]?\\d)/g; 
+	$field_list =~ s/%S/#second#/g; 
 	# %S is the seconds [0-61]; leading zeros are permitted but not required.
 
-	$regex =~ s/%U/([\\d ]?\\d)/g;  
-	$field_list =~ s/%U/#week_sun_0#/g;  
+	$regex =~ s/%U/([\\d ]?\\d)/g; 
+	$field_list =~ s/%U/#week_sun_0#/g; 
 	# %U is the week number of the year (Sunday as the first day of the week) as a decimal number [0-53]; leading zeros are permitted but not required.
 
 	$regex =~ s/%w/([0-6])/g;
