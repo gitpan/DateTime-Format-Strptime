@@ -11,7 +11,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS);
 
 @ISA = 'Exporter';
-$VERSION = '1.0100';
+$VERSION = '1.0101';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
@@ -135,16 +135,22 @@ $VERSION = '1.0100';
       'g' => sub { substr( $_[0]->week_year, -2 ) },
       'G' => sub { $_[0]->week_year },
       'H' => sub { sprintf( '%02d', $_[0]->hour ) },
+      'i' => sub { sprintf( '%2d', int($_[0]->day / 7)+1 )},
       'I' => sub { my $h = $_[0]->hour; $h -= 12 if $h >= 12; sprintf( '%02d', $h ) },
+      'J' => sub { int(($_[0]->day - 1) / 7) + 1 },
       'j' => sub { $_[0]->day_of_year },
       'k' => sub { sprintf( '%2d', $_[0]->hour ) },
+      'K' => sub { sprintf( '%02d', $_[0]->hour + 1 ) },
       'l' => sub { my $h = $_[0]->hour; $h -= 12 if $h >= 12; $h=12 if $h==0; sprintf( '%2d', $h ) },
+      'L' => sub { my $h = $_[0]->hour; $h -= 12 if $h > 12; sprintf( '%2d', $h ) },
       'm' => sub { sprintf( '%02d', $_[0]->month ) },
       'M' => sub { sprintf( '%02d', $_[0]->minute ) },
       'n' => sub { "\n" }, # should this be OS-sensitive?
       'N' => \&_format_nanosecs,
       'p' => sub { $_[0]->{language}->am_pm( $_[0] ) },
       'P' => sub { lc $_[0]->{language}->am_pm( $_[0] ) },
+      'q' => sub { $_[0]->{tz}->name },
+      'Q' => sub { ($_[0]->year > 0) ? 'AD' : 'BC' },
       'r' => sub { $_[0]->strftime( '%I:%M:%S %p' ) },
       'R' => sub { $_[0]->strftime( '%H:%M' ) },
       's' => sub { $_[0]->epoch },
@@ -170,7 +176,6 @@ $VERSION = '1.0100';
       'y' => sub { sprintf( '%02d', substr( $_[0]->year, -2 ) ) },
       'Y' => sub { return $_[0]->year },
       'z' => sub { DateTime::TimeZone::offset_as_string( $_[0]->offset ) },
-      'q' => sub { $_[0]->{tz}->name },
       'Z' => sub { $_[0]->{tz}->short_name_for_datetime( $_[0] ) },
       '%' => sub { '%' },
     );
@@ -589,6 +594,18 @@ sub parse_duration {
     croak "DateTime::Format::Strptime doesn't do durations.";
 }
 
+sub _format($$) {
+	my ($output,$size) = @_;
+	$output=~s/^[ 0]+//;
+	if ($size >= length($output)) {
+		return sprintf("%${size}d",$output) if ($output=~/^\d+$/);
+		return sprintf("%${size}s",$output)
+	} else {
+		return substr($output,-1 * $size) if ($output=~/^\d+$/);
+		return substr($output, 0, $size);
+	}
+}
+
 sub format_datetime {
     my ( $self, $dt ) = @_;
 	
@@ -597,17 +614,15 @@ sub format_datetime {
     # make a copy or caller's scalars get munged
     my $f = $self->{pattern};
 	$f =~  s/
-				%([%a-zA-Z])
-			/
-				$FORMATS{$1} ? $FORMATS{$1}->($dt) : $1
-			/sgex;
-
-	$f =~  s/
 				%(\d+)N
 			/
 				$FORMATS{N}->($dt, $1)
 			/sgex;
-
+	$f =~  s/
+				%(\-?\d+)?([%a-zA-Z])
+			/
+				$FORMATS{$2} ? ($1) ? _format($FORMATS{$2}->($dt),$1) : $FORMATS{$2}->($dt) : $1.$2
+			/sgex;
 	return $f
 }
 

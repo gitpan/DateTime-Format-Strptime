@@ -1,7 +1,11 @@
+#!perl -w
+
 # t/002_basic.t - check module dates in various formats
 
 use Test::More tests => 17;
 use DateTime::Format::Strptime;
+use DateTime;
+use DateTime::TimeZone;
 
 my $object = DateTime::Format::Strptime->new(
 	pattern => '%D',
@@ -26,11 +30,6 @@ my @tests = (
 	['%H:%M:%S.%6N', '23:45:56.123456'],
 	['%H:%M:%S.%3N', '23:45:56.123'],
 
-	# Timezones
-	['%H:%M:%S %z', '23:45:56 +1000'],
-	['%H:%M:%S %Z', '23:45:56 AEST', '23:45:56 '],
-	['%H:%M:%S %z %Z', '23:45:56 +1000 AEST', '23:45:56 +1000 '],
-
 	# Complex dates
 	['%Y;%j = %Y-%m-%d', '2003;56 = 2003-02-25'],
 	[q|%d %b '%y = %Y-%m-%d|, q|25 Feb '03 = 2003-02-25|],
@@ -46,9 +45,29 @@ foreach (@tests) {
 SKIP: {
 	skip "You don't have the latest DateTime. Older version have a bug whereby 12am and 12pm are shown as 0am and 0pm. You should upgrade.", 1 
 		unless $DateTime::VERSION >= 0.11;
+
 	$object->pattern('%l:%M:%S %p');
 	is($object->format_datetime( $object->parse_datetime( '12:34:56 AM' ) ), 
 		'12:34:56 AM', '%l:%M:%S %p');
+}
+
+
+# Timezones
+SKIP: {
+	skip "You don't have the latest DateTime::TimeZone. Older versions don't display all time zone information. You should upgrade.", 1 
+		unless $DateTime::TimeZone::VERSION >= 0.13;
+
+	$object->pattern('%H:%M:%S %z');
+	is($object->format_datetime( $object->parse_datetime( '23:45:56 +1000' ) ), 
+		'23:45:56 +1000', '%H:%M:%S %z');
+
+	$object->pattern('%H:%M:%S %Z');
+	is($object->format_datetime( $object->parse_datetime( '23:45:56 AEST' ) ), 
+		'23:45:56 ', '%H:%M:%S %Z');
+
+	$object->pattern('%H:%M:%S %z %Z');
+	is($object->format_datetime( $object->parse_datetime( '23:45:56 +1000 AEST' ) ), 
+		'23:45:56 +1000 ', '%H:%M:%S %z %Z');
 }
 
 $object->time_zone('Australia/Perth');

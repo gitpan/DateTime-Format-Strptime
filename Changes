@@ -49,3 +49,11 @@ Note on version conventions:
 		  Michael Goltze.
 		- Got Time Zones working, including mapping non-ambiguous TLAs
 		  offsets and Olsen names (the latter uses the %q token)
+
+
+1.0101 Tue, 13 May 2003 07:58:23 + 1000
+	- the 'oldtimers' release
+		- Fixed a test that was broken if DateTime::TimeZone was not
+		  version 0.13 or above.
+		  
+		  
