@@ -38,7 +38,7 @@ foreach my $locale ( @locales ) {
 $pattern = "%Y-%m-%d %B";
 foreach my $locale ( @locales ) {
 	foreach my $month (1..12) {
-		my $dt = DateTime->now( locale => $locale )->set( month => $month );
+		my $dt = DateTime->now( locale => $locale )->set( month => $month, day => 20 );
 		my $input = $dt->strftime($pattern);
 		eval { $strptime = DateTime::Format::Strptime->new(
 			pattern => $pattern,
