@@ -2,7 +2,7 @@ package DateTime::Format::Strptime;
 
 use strict;
 use DateTime;
-use DateTime::Language;
+use DateTime::Locale;
 use DateTime::TimeZone;
 use Params::Validate qw( validate SCALAR BOOLEAN OBJECT CODEREF );
 use Carp;
@@ -11,7 +11,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
 
 @ISA = 'Exporter';
-$VERSION = '1.03';
+$VERSION = '1.04';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
@@ -125,28 +125,34 @@ sub new {
     my $class = shift;
 	my %args = validate( @_, {	pattern		=> { type => SCALAR },
 								time_zone	=> { type => SCALAR | OBJECT, optional => 1 },
-								language	=> { type => SCALAR | OBJECT, default => 'English' },
+								language	=> { type => SCALAR | OBJECT, optional => 1 },
+                                locale      => { type => SCALAR | OBJECT, default => 'English' },
 								on_error	=> { type => SCALAR | CODEREF, default => 'undef' },
 								diagnostic	=> { type => SCALAR, default => 0 },
                              }
                        );
-	
+
+    if ( exists $args{ language } ) {
+		CORE::warn("Use of the language parameter in the DateTime::Strptime constructor is deprecated. Please use locale instead.");
+        $args{ locale } ||= delete $args{ language };
+    }
+
 	croak("The value supplied to on_error must be either 'croak', 'undef' or a code reference.") 
 		unless ref($args{on_error}) eq 'CODE' 
 			or $args{on_error} eq 'croak' 
 			or $args{on_error} eq 'undef';
 
 
-	# Deal with language
-	unless (ref ($args{language})) {
-		my $language = DateTime::Language->new(language => $args{language});
+	# Deal with locale
+	unless (ref ($args{locale})) {
+        my $locale = DateTime::Locale->load( $args{locale} );
 		
-		croak("Could not create language from $args{language}") unless $language;
+		croak("Could not create locale from $args{locale}") unless $locale;
 
-		$args{_language} = $language;
+		$args{_locale} = $locale;
 	} else {
-		$args{_language} = $args{language};
-		($args{language}) = ref($args{_language}) =~/::(\w+)[^:]+$/
+		$args{_locale} = $args{locale};
+		($args{locale}) = ref($args{_locale}) =~/::(\w+)[^:]+$/
 	}
 	
 	if ($args{time_zone}) {
@@ -161,14 +167,18 @@ sub new {
 		$args{set_time_zone} = '';
 	}
 	
-	# Deal with the parser
-	$args{parser} = _build_parser($args{pattern});
-		
-	if ($args{parser}=~/(%[^\/])/) {
-		croak("Unidentified token in pattern: $1 in $args{pattern}");
-	}
 	
-    return bless \%args, $class;
+    my $self = bless \%args, $class;
+
+
+	# Deal with the parser
+	$self->{parser} = $self->_build_parser($self->{pattern});
+		
+	if ($self->{parser}=~/(%[^\/])/) {
+		croak("Unidentified token in pattern: $1 in $self->{pattern}");
+	}
+
+	return $self;
 }
 
 sub pattern {
@@ -176,7 +186,7 @@ sub pattern {
 	my $pattern = shift;
 	
 	if ($pattern) {
-		my $possible_pattern = _build_parser($pattern);
+		my $possible_pattern = $self->_build_parser($pattern);
 		if ($possible_pattern=~/(%\{\w+\}|%\w)/) {
 			$self->local_carp("Unidentified token in pattern: $1 in $pattern. Leaving old pattern intact.") and return undef;
 		} else {
@@ -187,20 +197,27 @@ sub pattern {
 	return $self->{pattern};	
 }
 
-sub language {
+sub locale {
 	my $self = shift;
-	my $language = shift;
+	my $locale = shift;
 	
-	if ($language) {
-		my $possible_language = DateTime::Language->new(language => $language);
-		unless ($possible_language) {
-			$self->local_carp("Could not create language from $language. Leaving old language intact.") and return undef;
+	if ($locale) {
+               my $possible_locale = DateTime::Locale->load( $locale );
+		unless ($possible_locale) {
+			$self->local_carp("Could not create locale from $locale. Leaving old locale intact.") and return undef;
 		} else {
-			$self->{language} = $language;
-			$self->{_language} = $possible_language;
+			$self->{locale} = $locale;
+			$self->{_locale} = $possible_locale;
+			# When the locale changes we need to rebuild the parser
+			$self->{parser} = $self->_build_parser($self->{pattern});
 		}
 	}
-	return $self->{language};	
+	return $self->{locale};	
+}
+
+sub language {
+	CORE::warn("Use of the language method in DateTime::Strptime is deprecated. Please use locale instead.");
+ 	return locale(@_);
 }
 
 sub time_zone {
@@ -232,7 +249,7 @@ sub parse_datetime {
 			$dow_sun_0,		$dow_mon_1,		$week_mon_1,	$year_100,
 			$year,			$iso_week_year_100,				$iso_week_year,
 			$epoch,			$tz_offset,		$timezone,		$tz_olson,
-			$nanosecond,
+			$nanosecond,	$ce_year,
 			
 			$doy_dt,		$epoch_dt, 		$use_timezone,
 		);
@@ -242,20 +259,16 @@ sub parse_datetime {
 			$Hour,			$Minute,		$Second,		$Nanosecond,
 		) = ();
 	
-	# Locale-ize the parser
-	my $locale_parser = $self->{parser};
-		my $ampm_list = join('|', @{$self->{_language}->am_pm_list});
-		$ampm_list .= '|' . lc $ampm_list;
-		$locale_parser=~s/LOCALE:AMPM/$ampm_list/g;		
-		
 	# Run the parser
-	eval($locale_parser);
-
+	my $parser = $self->{parser};
+	eval($parser);
+	die $@ if $@;
+	
 	if ($self->{diagnostic}) {
 		print qq|
 		
 Entered     = $time_string
-Parser		= $locale_parser
+Parser		= $parser
 		
 dow_name    = $dow_name
 month_name  = $month_name
@@ -275,6 +288,7 @@ dow_mon_1   = $dow_mon_1
 week_mon_1  = $week_mon_1
 year_100    = $year_100
 year        = $year		
+ce_year     = $ce_year		
 tz_offset   = $tz_offset
 tz_olson    = $tz_olson
 timezone    = $timezone
@@ -306,6 +320,7 @@ iso_week_year_100 = $iso_week_year_100
 			($self->{parser}=~/\$week_mon_1\b/ and $week_mon_1 eq '') or 
 			($self->{parser}=~/\$year_100\b/ and $year_100 eq '') or 
 			($self->{parser}=~/\$year\b/ and $year eq '') or
+			($self->{parser}=~/\$ce_year\b/ and $ce_year eq '') or
 			($self->{parser}=~/\$tz_offset\b/ and $tz_offset eq '') or
 			($self->{parser}=~/\$tz_olson\b/ and $tz_olson eq '') or
 			($self->{parser}=~/\$timezone\b/ and $timezone eq '') or
@@ -357,9 +372,12 @@ iso_week_year_100 = $iso_week_year_100
 		if ($century) {
 			$Year = (($century * 100) - 0) + $year_100;
 		} else {
-			if ($year >= 69 and $year <= 99) {
+			print "No century, guessing for $year_100" if $self->{diagnostic};
+			if ($year_100 >= 69 and $year_100 <= 99) {
+				print "Guessed 1900s" if $self->{diagnostic};
 				$Year = 1900 + $year_100;
 			} else {
+				print "Guessed 2000s" if $self->{diagnostic};
 				$Year = 2000 + $year_100;
 			}
 		}
@@ -367,6 +385,10 @@ iso_week_year_100 = $iso_week_year_100
 	if ($year) {
 		$self->local_croak("Your two year values ($year_100 and $year) do not match.") and return undef if ($Year && ($year != $Year));
 		$Year = $year;
+	}
+	if ($ce_year) {
+		$self->local_croak("Your two year values ($ce_year and $year) do not match.") and return undef if ($Year && ($ce_year != $Year));
+		$Year = $ce_year;
 	}
 	$self->local_croak("Your year value does not match your epoch.") and return undef if $epoch_dt and $Year and $Year != $epoch_dt->year;
 	
@@ -377,7 +399,7 @@ iso_week_year_100 = $iso_week_year_100
 		$self->local_croak("There is no use providing a month name ($month_name) without providing a year.") and return undef unless $Year;
 		my $month_count  = 0;
 		my $month_number = 0;
-		foreach my $month (@{$self->{_language}->month_names}) {
+		foreach my $month (@{$self->{_locale}->month_names}) {
 			$month_count++;
 			if (lc $month eq lc $month_name) {
 				$month_number = $month_count;
@@ -386,7 +408,7 @@ iso_week_year_100 = $iso_week_year_100
 		}
 		unless ($month_number) {
 			my $month_count = 0;
-			foreach my $month (@{$self->{_language}->month_abbreviations}) {
+			foreach my $month (@{$self->{_locale}->month_abbreviations}) {
 				$month_count++;
 				if (lc $month eq lc $month_name) {
 					$month_number = $month_count;
@@ -395,7 +417,7 @@ iso_week_year_100 = $iso_week_year_100
 			}
 		}
 		unless ($month_number) {
-			$self->local_croak("$month_name is not a recognised month in this language.") and return undef;
+			$self->local_croak("$month_name is not a recognised month in this locale.") and return undef;
 		}
 		$Month = $month_number;
 	}
@@ -494,7 +516,7 @@ iso_week_year_100 = $iso_week_year_100
     	second		=> ($Second     || 0),
     	nanosecond	=> ($Nanosecond || 0),
     	
-    	language	=>	$self->{language},
+    	locale      =>	$self->{_locale},
     	time_zone	=>	$use_timezone,
 	);
 	
@@ -505,7 +527,7 @@ iso_week_year_100 = $iso_week_year_100
 	if ($dow_name) {
 		my $dow_count  = 0;
 		my $dow_number = 0;
-		foreach my $dow (@{$self->{_language}->day_names}) {
+		foreach my $dow (@{$self->{_locale}->day_names}) {
 			$dow_count++;
 			if (lc $dow eq lc $dow_name) {
 				$dow_number = $dow_count;
@@ -514,7 +536,7 @@ iso_week_year_100 = $iso_week_year_100
 		}
 		unless ($dow_number) {
 			my $dow_count = 0;
-			foreach my $dow (@{$self->{_language}->day_abbreviations}) {
+			foreach my $dow (@{$self->{_locale}->day_abbreviations}) {
 				$dow_count++;
 				if (lc $dow eq lc $dow_name) {
 					$dow_number = $dow_count;
@@ -523,7 +545,7 @@ iso_week_year_100 = $iso_week_year_100
 			}
 		}
 		unless ($dow_number) {
-			$self->local_croak("$dow_name is not a recognised day in this language.") and return undef;
+			$self->local_croak("$dow_name is not a recognised day in this locale.") and return undef;
 		}
 		$self->local_croak("Your day of the week ($dow_name) does not match the date supplied: ".$potential_return->ymd) and return undef if $dow_number and $potential_return->dow != $dow_number;
 	}
@@ -558,14 +580,45 @@ sub format_duration {
 
 
 sub _build_parser {
+	my $self = shift;
 	my $regex = my $field_list = shift;
 	my @fields = $field_list =~ m/(%\{\w+\}|%\d*.)/g;
 	$field_list = join('',@fields);
 	
 	my $tempdt = DateTime->now(); # Created just so we can do $tempdt->can(..)
 
+	# Locale-ize the parser
+    my $ampm_list = join('|', @{$self->{_locale}->am_pms});
+	$ampm_list .= '|' . lc $ampm_list;
+	
+	my $default_date_format = $self->{_locale}->default_date_format;
+	my @locale_format = $default_date_format =~ m/(%\{\w+\}|%\d*.)/g;
+	$default_date_format = join('',@locale_format);
+	
+	my $default_time_format = $self->{_locale}->default_time_format;
+	@locale_format = $default_time_format =~ m/(%\{\w+\}|%\d*.)/g;
+	$default_time_format = join('',@locale_format);
+	
+	my $default_datetime_format = $self->{_locale}->default_datetime_format;
+	@locale_format = $default_datetime_format =~ m/(%\{\w+\}|%\d*.)/g;
+	$default_datetime_format = join('',@locale_format);
+	
+	print "Date format: $default_date_format\nTime format: $default_time_format\nDatetime format: $default_datetime_format\n" if $self->{diagnostic};
+	
+	$regex =~ s/%c/$self->{_locale}->default_datetime_format/eg;
+	$field_list =~ s/%c/$default_datetime_format/eg;
+	# %c is the locale's default datetime format.
+	
+	$regex =~ s/%x/$self->{_locale}->default_date_format/eg;
+	$field_list =~ s/%x/$default_date_format/eg;
+	# %x id the locale's default date format.
+	
+	$regex =~ s/%X/$self->{_locale}->default_time_format/eg;
+	$field_list =~ s/%X/$default_time_format/eg;
+	# %x id the locale's default time format.
+	
 	# I'm absoutely certain there's a better way to do this:
-	$regex=~s|([/.-])|\\$1|g;
+	$regex=~s|([\/\.\-])|\\$1|g;
 	
 	$regex =~ s/%T/%H:%M:%S/g;
 	$field_list =~ s/%T/%H%M%S/g;
@@ -592,7 +645,7 @@ sub _build_parser {
 	# %a is the day of the week, using the locale's weekday names; either the abbreviated or full name may be specified.
 	# %A is the same as %a.
 
-	$regex =~ s/%[bBh]/(\\w+)/g;
+	$regex =~ s/%[bBh]/([^\\s]+)/g;
 	$field_list =~ s/%[bBh]/#month_name#/g;
 	#is the month, using the locale's month names; either the abbreviated or full name may be specified.
 	# %B is the same as %b.
@@ -645,7 +698,7 @@ sub _build_parser {
 	# %n is any white space.
 	# %t is any white space.
 
-	$regex =~ s/%p/(LOCALE:AMPM)/gi;
+	$regex =~ s/%p/($ampm_list)/gi;
 	$field_list =~ s/%p/#ampm#/gi;
 	# %p is the locale's equivalent of either A.M./P.M. indicator for 12-hour clock.
 
@@ -753,9 +806,9 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
   use DateTime::Format::Strptime;
 
   my $Strp = new DateTime::Format::Strptime(
-  				pattern 	=> '%T',
-  				language	=> 'English',
-  				time_zone	=> 'Melbourne/Australia',
+  				pattern     => '%T',
+  				locale      => 'en_AU',
+  				time_zone   => 'Melbourne/Australia',
   			);
   			
   my $dt = $Strp->parse_datetime('23:16:42');
@@ -769,7 +822,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
   my $Strp = new DateTime::Format::Strptime(
   				pattern 	=> '%T',
-  				language	=> 'English',
+  				locale	    => 'en_AU',
   				time_zone	=> 'Melbourne/Australia',
   				on_error	=> 'undef',
   			);
@@ -780,7 +833,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
   $newpattern = $Strp->pattern($pattern); 
   
   unless $newpattern {
-      tell_user($Strp->errmsg);
+      do_something_with($Strp->errmsg);
   }
 
 =head1 DESCRIPTION
@@ -798,7 +851,7 @@ associated.
 =item * new( pattern=>$strptime_pattern )
 
 Creates the format object. You must specify a pattern, you can also
-specify a C<time_zone> and C<language>. If you specify a time zone,
+specify a C<time_zone> and a C<locale>. If you specify a time zone
 then any resulting C<DateTime> object will be in that time zone. If you
 do not specify a C<time_zone> parameter, but there is a time zone in the
 string you pass to C<parse_datetime>, then the resulting C<DateTime> will
@@ -851,8 +904,7 @@ Given a string in the pattern specified in the constructor, this method
 will return a new C<DateTime> object.
 
 If given a string that doesn't match the pattern, the formatter will
-croak or return undef, depending on the value of 
-$DateTime::Format::Strptime::CROAK.
+croak or return undef, depending on the setting of on_error in the constructor.
 
 =item * format_datetime($datetime)
 
@@ -860,14 +912,19 @@ Given a C<DateTime> object, this methods returns a string formatted in
 the object's format. This method is synonymous with C<DateTime>'s
 strptime method.
 
-=item * language($language)
+=item * locale($locale)
+=item * language($locale)
 
-When given a language, this method sets its language appropriately. If
-the language is not understood, the method will croak or return undef
-(depending on the value of $DateTime::Format::Strptime::CROAK)
+When given a locale, this method sets its locale appropriately. If
+the locale is not understood, the method will croak or return undef
+(depending on the setting of on_error in the constructor)
 
-If successful this method returns the current language. (After
-processing as above)
+If successful this method returns the current locale. (After
+processing as above).
+
+For backwards compatability the language() method still exists. The
+method is deprecated and you are advised to update. Using the language
+method will result in a CORE::warn being generated.
 
 =item * pattern($strptime_pattern)
 
@@ -994,8 +1051,8 @@ Nanoseconds. For other sub-second values use C<%[number]N>.
 
 =item * %p
 
-The equivalent of AM or PM according to the language in use. (See
-L<DateTime::Language>)
+The equivalent of AM or PM according to the locale in use. (See
+L<DateTime::Locale>)
 
 =item * %r
 

@@ -6,11 +6,9 @@ WriteMakefile(
     AUTHOR       => 'Rick Measham (rickm@cpan.org)',
     ABSTRACT     => 'Parse and format strp and strf time patterns',
     PREREQ_PM    => {
-    	'DateTime'           => 0.13,
-    	'DateTime::Language' => 0,
-    	'DateTime::TimeZone' => 0.18,
-    	'Params::Validate'   => 0,
-    	'Carp'               => 0,
-    	'Exporter'           => 0,
+       'DateTime'           => '0.1402',
+       'DateTime::Locale'   => '0.02',
+       'DateTime::TimeZone' => '0.25',
+       'Params::Validate'   => '0.64',
     },
 );

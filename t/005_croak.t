@@ -10,9 +10,9 @@ isa_ok($return, 'DateTime::Format::Strptime','Legal Pattern in constructor shoul
 is($@, '', "Croak message should be empty");
 
 # 3..4
-eval { DateTime::Format::Strptime->new(pattern => '%Y %X') };
+eval { DateTime::Format::Strptime->new(pattern => '%Y %Q') };
 isnt($@, undef, "Illegal pattern in constructor should croak");
-is(substr($@,0,42), "Unidentified token in pattern: %X in %Y %X", "Croak message should reflect illegal pattern");
+is(substr($@,0,42), "Unidentified token in pattern: %Q in %Y %Q", "Croak message should reflect illegal pattern");
 
 
 
@@ -24,7 +24,7 @@ diag("\nTurned Croak Off");
 my $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',
-	language => 'English',
+	locale => 'en_AU',
 	on_error => 'undef',
 	diagnostic => 0,
 );
@@ -34,8 +34,8 @@ is($object->pattern('%Y %D'), '%Y %D','Legal Pattern in pattern() should return 
 is($object->{errmsg} , undef, "Error message should be undef");
 
 # 7..8
-is($object->pattern("%X") , undef, "Illegal Pattern should return undef");
-is($object->{errmsg} , 'Unidentified token in pattern: %X in %X. Leaving old pattern intact.', "Error message should reflect illegal pattern");
+is($object->pattern("%Q") , undef, "Illegal Pattern should return undef");
+is($object->{errmsg} , 'Unidentified token in pattern: %Q in %Q. Leaving old pattern intact.', "Error message should reflect illegal pattern");
 
 # 9..10
 is($object->pattern("%{gumtree}") , undef, "Non-existing DateTime call should return undef");
@@ -61,18 +61,18 @@ diag("\nTurned Croak On");
 $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',
-	language => 'English',
+	locale => 'en_AU',
 	on_error => 'croak',
 	diagnostic => 0,
 );
 
 {   # Make warn die so $@ is set. There's probably a better way.
 	local $SIG{__WARN__} = sub { die "WARN: $_[0]" };
-	eval { $object->pattern("%X") };
+	eval { $object->pattern("%Q") };
 }
 # 15..16
 isnt($@ , '', "Illegal Pattern should carp");
-is(substr($@,0,74), 'WARN: Unidentified token in pattern: %X in %X. Leaving old pattern intact.', "Croak message should reflect illegal pattern");
+is(substr($@,0,74), 'WARN: Unidentified token in pattern: %Q in %Q. Leaving old pattern intact.', "Croak message should reflect illegal pattern");
 
 # 17..18
 eval { $object->parse_datetime("Not a datetime") };
@@ -93,7 +93,7 @@ diag("\nTurned Croak to Sub");
 $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',
-	language => 'English',
+	locale => 'en_AU',
 	on_error => sub{$_[0]->{errmsg} = 'Oops! Teehee! '.$_[1]; 1},
 	diagnostic => 0,
 );
@@ -104,8 +104,8 @@ is($object->pattern('%Y %D'), '%Y %D','Legal Pattern in pattern() should return 
 is($object->{errmsg} , undef, "Error message should be undef");
 
 # 23..24
-is($object->pattern("%X") , undef, "Illegal Pattern should return undef");
-is($object->{errmsg} , 'Oops! Teehee! Unidentified token in pattern: %X in %X. Leaving old pattern intact.', "Error message should reflect illegal pattern");
+is($object->pattern("%Q") , undef, "Illegal Pattern should return undef");
+is($object->{errmsg} , 'Oops! Teehee! Unidentified token in pattern: %Q in %Q. Leaving old pattern intact.', "Error message should reflect illegal pattern");
 
 # 25..26
 is($object->pattern("%{gumtree}") , undef, "Non-existing DateTime call should return undef");

@@ -105,10 +105,20 @@ Note on version conventions:
 
 1.0302 Sat, 28 Jun 2003 09:15:21 +1000
 	- the 'Broken Windows' release
-		- Test 004 was failing on Windows due to the path delimieter
+		- Test 004 was failing on Windows due to the path delimiter
 		  being a backslash rather than a slash. This release should
 		  also fix Strptime for Mac users, although I've had no
 		  complaints from such users. (Myself being one of the only
 		  ones currently using Strptime AFAIK!) Thanks Ron Hill for
 		  the bug report.
 
+1.0400 Sun, 10 Aug 2003 00:22:00 +1000
+	- the 'locale' release
+		- Applied patches from Joshua Hoblitt to move the the brand
+		  new DateTime::Locale rather than the old ::Language modules
+		- Implemented %x, %X and %c for locale formats
+		- Fixed a bug on the two digit year determinator
+		- Added a test for locales known as 004locale.t
+	- This is a major change and you should install this release if
+	  you are using DateTime >= 0.14 (the first release with Locale)
+	  
