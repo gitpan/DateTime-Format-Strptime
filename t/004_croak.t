@@ -12,14 +12,14 @@ is($@, '', "Croak message should be empty");
 # 3..4
 eval { DateTime::Format::Strptime->new(pattern => '%Y %X') };
 isnt($@, undef, "Illegal pattern in constructor should croak");
-is(substr($@,0,-4), "Unidentified token in pattern: %X in %Y %X at t/004_croak.t line", "Croak message should reflect illegal pattern");
+is(substr($@,0,42), "Unidentified token in pattern: %X in %Y %X", "Croak message should reflect illegal pattern");
 
 
 
 #--------------------------------------------------------------------------------
 
 
-diag("Turned Croak Off");
+diag("\nTurned Croak Off");
 
 my $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
@@ -57,7 +57,7 @@ is($object->{errmsg} , 'Your two year values (03 and 2002) do not match.', "Erro
 #--------------------------------------------------------------------------------
 
 
-diag("Turned Croak On");
+diag("\nTurned Croak On");
 $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',
@@ -72,24 +72,24 @@ $object = DateTime::Format::Strptime->new(
 }
 # 15..16
 isnt($@ , '', "Illegal Pattern should carp");
-is(substr($@,0,-4), 'WARN: Unidentified token in pattern: %X in %X. Leaving old pattern intact. at t/004_croak.t line', "Croak message should reflect illegal pattern");
+is(substr($@,0,74), 'WARN: Unidentified token in pattern: %X in %X. Leaving old pattern intact.', "Croak message should reflect illegal pattern");
 
 # 17..18
 eval { $object->parse_datetime("Not a datetime") };
 isnt($@ , '', "Non-matching date time string should croak");
-is(substr($@,0,-4), "Your datetime does not match your pattern. at t/004_croak.t line", "Croak message should reflect non-matching datetime");
+is(substr($@,0,42), "Your datetime does not match your pattern.", "Croak message should reflect non-matching datetime");
 
 # 19..20
 eval { $object->parse_datetime("2002 11/30/03") };
 isnt($@ , '', "Ambiguous date time string should croak");
-is(substr($@,0,-4), "Your two year values (03 and 2002) do not match. at t/004_croak.t line", "Croak message should reflect Ambiguous date time string");
+is(substr($@,0,48), "Your two year values (03 and 2002) do not match.", "Croak message should reflect Ambiguous date time string");
 
 
 
 #--------------------------------------------------------------------------------
 
 
-diag("Turned Croak to Sub");
+diag("\nTurned Croak to Sub");
 $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',

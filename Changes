@@ -102,3 +102,13 @@ Note on version conventions:
 	- the 'Day of Year' release
 		- Updated to handle the post 0.12 DateTime that now
 		  validates dates. Still handles old DateTime.
+
+1.0302 Sat, 28 Jun 2003 09:15:21 +1000
+	- the 'Broken Windows' release
+		- Test 004 was failing on Windows due to the path delimieter
+		  being a backslash rather than a slash. This release should
+		  also fix Strptime for Mac users, although I've had no
+		  complaints from such users. (Myself being one of the only
+		  ones currently using Strptime AFAIK!) Thanks Ron Hill for
+		  the bug report.
+
