@@ -67,3 +67,26 @@ Note on version conventions:
 		- Clarified parameter discrepancy between synopsis and docs
 		  (Thanks Chris Winters)
 		  
+1.0200 Wed, 28 May 2003 21:02:03 +1000
+	- the 'Proclavity to croak' release
+		- The docs for Time::Local talk about the 'proclavity to croak'
+		  which basically means the module croaks easily. So did this
+		  one until now.
+		  
+		  Until now, if you allowed a user to specify a pattern and they
+		  entered one that was non parsable, this module would croak
+		  causing your script to croak. This is a Bad Thing (tm).
+		  
+		  The behaviour now remains the same, however if you set
+		  $DateTime::Format::StrpTime::CROAK to false, methods will 
+		  return undef rather than croaking. 
+		  $DateTime::Format::StrpTime::errmsg will tell you what went
+		  wrong. 
+		  
+		  The default is to continue to croak. This means you have to
+		  delibrately turn it off. Hopefully you'll change you script 
+		  to do this at the same time you change it to check the
+		  return values of the methods :)
+
+
+
