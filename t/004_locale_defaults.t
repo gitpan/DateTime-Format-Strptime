@@ -1,6 +1,6 @@
 #!perl -w
 
-# t/004_locale.t - check module dates in various formats
+# t/004_locale_defaults.t - check module dates in various formats
 
 use Test::More tests => 48;
 use DateTime::Format::Strptime;

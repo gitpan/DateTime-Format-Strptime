@@ -11,7 +11,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
 
 @ISA = 'Exporter';
-$VERSION = '1.04';
+$VERSION = '1.05';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
@@ -125,17 +125,11 @@ sub new {
     my $class = shift;
 	my %args = validate( @_, {	pattern		=> { type => SCALAR },
 								time_zone	=> { type => SCALAR | OBJECT, optional => 1 },
-								language	=> { type => SCALAR | OBJECT, optional => 1 },
                                 locale      => { type => SCALAR | OBJECT, default => 'English' },
 								on_error	=> { type => SCALAR | CODEREF, default => 'undef' },
 								diagnostic	=> { type => SCALAR, default => 0 },
                              }
                        );
-
-    if ( exists $args{ language } ) {
-		CORE::warn("Use of the language parameter in the DateTime::Strptime constructor is deprecated. Please use locale instead.");
-        $args{ locale } ||= delete $args{ language };
-    }
 
 	croak("The value supplied to on_error must be either 'croak', 'undef' or a code reference.") 
 		unless ref($args{on_error}) eq 'CODE' 
@@ -172,9 +166,8 @@ sub new {
 
 
 	# Deal with the parser
-	$self->{parser} = $self->_build_parser($self->{pattern});
-		
-	if ($self->{parser}=~/(%[^\/])/) {
+	$self->{parser} = $self->_build_parser($args{pattern});
+	if ($self->{parser}=~/(%\{\w+\}|%\w)/ and $args{pattern} !~ /\%$1/) {
 		croak("Unidentified token in pattern: $1 in $self->{pattern}");
 	}
 
@@ -186,11 +179,11 @@ sub pattern {
 	my $pattern = shift;
 	
 	if ($pattern) {
-		my $possible_pattern = $self->_build_parser($pattern);
-		if ($possible_pattern=~/(%\{\w+\}|%\w)/) {
+		my $possible_parser = $self->_build_parser($pattern);
+		if ($possible_parser=~/(%\{\w+\}|%\w)/ and $pattern !~ /\%$1/) {
 			$self->local_carp("Unidentified token in pattern: $1 in $pattern. Leaving old pattern intact.") and return undef;
 		} else {
-			$self->{parser} = $possible_pattern;
+			$self->{parser} = $possible_parser;
 			$self->{pattern} = $pattern;
 		}
 	}
@@ -213,11 +206,6 @@ sub locale {
 		}
 	}
 	return $self->{locale};	
-}
-
-sub language {
-	CORE::warn("Use of the language method in DateTime::Strptime is deprecated. Please use locale instead.");
- 	return locale(@_);
 }
 
 sub time_zone {
@@ -257,6 +245,7 @@ sub parse_datetime {
 	# Variables for DateTime
 	my (	$Year,			$Month,			$Day,
 			$Hour,			$Minute,		$Second,		$Nanosecond,
+		$Am, $Pm
 		) = ();
 	
 	# Run the parser
@@ -462,12 +451,13 @@ iso_week_year_100 = $iso_week_year_100
 	$self->local_croak("$hour_24 is too large to be an hour of the day.") and return undef unless $hour_24 <= 23; #OK so leap seconds will break!
 	$self->local_croak("$hour_12 is too large to be an hour of the day.") and return undef unless $hour_12 <= 12;
 	$self->local_croak("You must specify am or pm for 12 hour clocks ($hour_12|$ampm).") and return undef if ($hour_12 && (! $ampm));
-	if ($ampm=~/p/i) {
+    ($Am, $Pm) = @{$self->{_locale}->am_pms};
+	if (lc $ampm eq lc $Pm) {
 		if ($hour_12) {
 			$hour_12 += 12 if $hour_12 and $hour_12 != 12;
 		}
 		$self->local_croak("Your am/pm value ($ampm) does not match your hour ($hour_24)") and return undef if $hour_24 and $hour_24 < 12;
-	} elsif ($ampm=~/a/i) {
+	} elsif (lc $ampm eq lc $Am) {
 		if ($hour_12) {
 			$hour_12 = 0 if $hour_12 == 12;
 		}
@@ -605,6 +595,9 @@ sub _build_parser {
 	
 	print "Date format: $default_date_format\nTime format: $default_time_format\nDatetime format: $default_datetime_format\n" if $self->{diagnostic};
 	
+	$regex =~ s/%%/ovnksdjhvniurnvkjsdhfbngkjsdbnhuyw678rhiuwf/g;
+	$field_list =~ s/%%/ovnksdjhvniurnvkjsdhfbngkjsdbnhuyw678rhiuwf/g;
+	
 	$regex =~ s/%c/$self->{_locale}->default_datetime_format/eg;
 	$field_list =~ s/%c/$default_datetime_format/eg;
 	# %c is the locale's default datetime format.
@@ -617,7 +610,7 @@ sub _build_parser {
 	$field_list =~ s/%X/$default_time_format/eg;
 	# %x id the locale's default time format.
 	
-	# I'm absoutely certain there's a better way to do this:
+	# I'm absolutely certain there's a better way to do this:
 	$regex=~s|([\/\.\-])|\\$1|g;
 	
 	$regex =~ s/%T/%H:%M:%S/g;
@@ -640,12 +633,24 @@ sub _build_parser {
 	$field_list =~ s|%F|%Y%m%d|g;
 	#is the same as %Y-%m-%d - the ISO date format.
 
-	$regex =~ s/%a/(\\w+)/gi; 
+	my $day_re = join('|', 
+		map { quotemeta $_ } 
+			sort { length $b <=> length $a } 
+				grep(/\W/, @{$self->{_locale}->day_names}, @{$self->{_locale}->day_abbreviations})
+	);
+	$day_re .= '|' if $day_re;
+	$regex =~ s/%a/($day_re\\w+)/gi; 
 	$field_list =~ s/%a/#dow_name#/gi; 
 	# %a is the day of the week, using the locale's weekday names; either the abbreviated or full name may be specified.
 	# %A is the same as %a.
 
-	$regex =~ s/%[bBh]/([^\\s]+)/g;
+	my $month_re = join('|', 
+		map { quotemeta $_ } 
+			sort { length $b <=> length $a } 
+				grep(/\s/, @{$self->{_locale}->month_names}, @{$self->{_locale}->month_abbreviations})
+	);
+	$month_re .= '|' if $month_re;
+	$regex =~ s/%[bBh]/($month_re\\S+)/g;
 	$field_list =~ s/%[bBh]/#month_name#/g;
 	#is the month, using the locale's month names; either the abbreviated or full name may be specified.
 	# %B is the same as %b.
@@ -750,9 +755,10 @@ sub _build_parser {
 	$field_list =~ s|(%{(\w+)})|($tempdt->can($2)) ? "#$2#" : $1 |eg;
 	# Any function in DateTime.
 
-	$regex =~ s/%%/%/g;
-	$field_list =~ s/%%//g;
+	$regex =~ s/ovnksdjhvniurnvkjsdhfbngkjsdbnhuyw678rhiuwf/\\%/g;
+	$field_list =~ s/ovnksdjhvniurnvkjsdhfbngkjsdbnhuyw678rhiuwf//g;
 	# is replaced by %.
+	#print $regex;
 
 	$field_list=~s/#([a-z0-9_]+)#/\$$1, /gi;
 	$field_list=~s/,\s*$//;
@@ -808,7 +814,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
   my $Strp = new DateTime::Format::Strptime(
   				pattern     => '%T',
   				locale      => 'en_AU',
-  				time_zone   => 'Melbourne/Australia',
+  				time_zone   => 'Australia/Melbourne',
   			);
   			
   my $dt = $Strp->parse_datetime('23:16:42');
@@ -818,23 +824,26 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 	
 	
-  # Stop croak so interactions work:
-
+  # Croak when things go wrong:
   my $Strp = new DateTime::Format::Strptime(
   				pattern 	=> '%T',
   				locale	    => 'en_AU',
-  				time_zone	=> 'Melbourne/Australia',
-  				on_error	=> 'undef',
+  				time_zone	=> 'Australia/Melbourne',
+  				on_error	=> 'croak',
   			);
 
-  $pattern = $CGI->param('user_pattern');
+  $newpattern = $Strp->pattern('%Q'); 
+  # Unidentified token in pattern: %Q in %Q at line 34 of script.pl
 
-  # This would normally croak with an invalid pattern:
-  $newpattern = $Strp->pattern($pattern); 
+  # Do something else when things go wrong:  
+  my $Strp = new DateTime::Format::Strptime(
+  				pattern 	=> '%T',
+  				locale	    => 'en_AU',
+  				time_zone	=> 'Australia/Melbourne',
+  				on_error	=> \&phone_police,
+  			);
   
-  unless $newpattern {
-      do_something_with($Strp->errmsg);
-  }
+  
 
 =head1 DESCRIPTION
 
@@ -910,10 +919,9 @@ croak or return undef, depending on the setting of on_error in the constructor.
 
 Given a C<DateTime> object, this methods returns a string formatted in
 the object's format. This method is synonymous with C<DateTime>'s
-strptime method.
+strftime method.
 
 =item * locale($locale)
-=item * language($locale)
 
 When given a locale, this method sets its locale appropriately. If
 the locale is not understood, the method will croak or return undef
@@ -922,15 +930,11 @@ the locale is not understood, the method will croak or return undef
 If successful this method returns the current locale. (After
 processing as above).
 
-For backwards compatability the language() method still exists. The
-method is deprecated and you are advised to update. Using the language
-method will result in a CORE::warn being generated.
-
 =item * pattern($strptime_pattern)
 
 When given a pattern, this method sets the object's pattern. If the
 pattern is invalid, the method will croak or return undef (depending on
-the value of $DateTime::Format::Strptime::CROAK)
+the value of the C<on_error> parameter)
 
 If successful this method returns the current pattern. (After processing
 as above)
@@ -942,9 +946,9 @@ sets the object's time zone. This effects the C<DateTime> object
 returned by parse_datetime
 
 If the time zone is invalid, the method will croak or return undef
-(depending on the value of $DateTime::Format::Strptime::CROAK)
+(depending on the value of the C<on_error> parameter)
 
-If successful this method returns the current pattern. (After processing
+If successful this method returns the current time zone. (After processing
 as above)
 
 =item * errmsg
@@ -952,7 +956,8 @@ as above)
 If the on_error behavior of the object is 'undef', error messages with
 this method so you can work out why things went wrong.
 
-This code emulates $DateTime::Format::Strptime::CROAK being true:
+This code emulates a C<$DateTime::Format::Strptime> with 
+the C<on_error> parameter equal to C<'croak'>:
 
 C<$Strp->pattern($pattern) or die $DateTime::Format::Strptime::errmsg>
 

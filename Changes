@@ -122,3 +122,20 @@ Note on version conventions:
 	- This is a major change and you should install this release if
 	  you are using DateTime >= 0.14 (the first release with Locale)
 	  
+1.0500 Wed, 18 Aug 2004 17:24:32 +1000
+	- the 'Jean Forget' release
+		- Adapted and applied patches from Jean Forget to allow
+		  day names and month names to have \W characters and to
+		  allow am/pm values from other locales
+		- Jean's patch also included some doc patches
+		- Patched the synopsis a Jean suggestion to demonstrate
+		  how to use the non-default error behaviors
+		- Added tests for these bugs
+		- Added t/more/* and the make test_more target so I can
+		  test every locale if I want to.
+	- It's over a year since I deprecated the language parameter so
+	  I've now removed it. You've had a year of warnings!
+	- This is a major change and you should install this release if
+	  you use any locale other than en.
+	
+	  
