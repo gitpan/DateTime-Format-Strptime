@@ -56,4 +56,8 @@ Note on version conventions:
 		- Fixed a test that was broken if DateTime::TimeZone was not
 		  version 0.13 or above.
 		  
+1.0102 Fri, 16 May 2003 07:28:18 + 1000
+	- the 'wonky test' release
+		- Fixed the same test as above. Think I actually succeeded 
+		  this time!
 		  

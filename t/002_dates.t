@@ -54,7 +54,7 @@ SKIP: {
 
 # Timezones
 SKIP: {
-	skip "You don't have the latest DateTime::TimeZone. Older versions don't display all time zone information. You should upgrade.", 1 
+	skip "You don't have the latest DateTime::TimeZone. Older versions don't display all time zone information. You should upgrade.", 3 
 		unless $DateTime::TimeZone::VERSION >= 0.13;
 
 	$object->pattern('%H:%M:%S %z');
@@ -63,11 +63,11 @@ SKIP: {
 
 	$object->pattern('%H:%M:%S %Z');
 	is($object->format_datetime( $object->parse_datetime( '23:45:56 AEST' ) ), 
-		'23:45:56 ', '%H:%M:%S %Z');
+		'23:45:56 +1000', '%H:%M:%S %Z');
 
 	$object->pattern('%H:%M:%S %z %Z');
 	is($object->format_datetime( $object->parse_datetime( '23:45:56 +1000 AEST' ) ), 
-		'23:45:56 +1000 ', '%H:%M:%S %z %Z');
+		'23:45:56 +1000 +1000', '%H:%M:%S %z %Z');
 }
 
 $object->time_zone('Australia/Perth');

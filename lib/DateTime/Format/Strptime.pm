@@ -11,7 +11,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS);
 
 @ISA = 'Exporter';
-$VERSION = '1.0101';
+$VERSION = '1.0102';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
