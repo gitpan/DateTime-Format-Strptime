@@ -11,7 +11,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS);
 
 @ISA = 'Exporter';
-$VERSION = '1.0103';
+$VERSION = '1.0102';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
@@ -337,7 +337,7 @@ iso_week_year_100 = $iso_week_year_100
 	
 	}
 
-	croak "Your datetime does not match your pattern." 
+	croak "Your datetime does not match your format." 
 		if (
 			($self->{parser}=~/\$dow_name\b/ and $dow_name eq '') or 
 			($self->{parser}=~/\$month_name\b/ and $month_name eq '') or 
@@ -832,23 +832,22 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 DESCRIPTION
 
-This module implements most of C<strptime(3)>, the POSIX function that
-is the reverse of C<strftime(3)>, for C<DateTime>. While C<strftime>
-takes a C<DateTime> and a pattern and returns a string, C<strptime> takes
-a string and a pattern and returns the C<DateTime> object
-associated.
+This module replicates most of Strptime for DateTime. Strptime is the
+unix command that is the reverse of Strftime. While Strftime takes a
+DateTime and outputs it in a given format, Strptime takes a DateTime and
+a format and returns the DateTime object associated.
 
 =head1 CONSTRUCTOR
 
 =over 4
 
-=item * new( pattern=>$strptime_pattern )
+=item * new( format=>$strptime_pattern )
 
 Creates the format object. You must specify a pattern, you can also
 specify a C<time_zone> and C<language>. If you specify a time zone,
-then any resulting C<DateTime> object will be in that time zone. If you
-do not specify a C<time_zone> paramter, but there is a time zone in the
-string you pass to C<parse_datetime>, then the resulting C<DateTime> will
+then any resulting DateTime object will be in that time zone. If you
+do not specify a time_zone paramter, but there is a time zone in the
+string you pass to parse_datetime, then the resulting DateTime will
 use that time zone.
 
 =back
@@ -861,17 +860,16 @@ This class offers the following methods.
 
 =item * parse_datetime($string)
 
-Given a string in the pattern specified in the constructor, this method
+Given a string in the format specified in the constructor, this method
 will return a new C<DateTime> object.
 
-If given a string that doesn't match the pattern, the formatter will
+If given a string that doesn't match the format, the formatter will
 croak.
 
 =item * format_datetime($datetime)
 
 Given a C<DateTime> object, this methods returns a string formatted in
-the object's format. This method is synonymous with C<DateTime>'s
-strptime method.
+the object's format.
 
 =item * language($language)
 
@@ -881,17 +879,17 @@ This method returns the current language. (After processing as above)
 
 =item * pattern($strptime_pattern)
 
-When given a pattern, this method sets the object's pattern.
+When given a format, this method sets the object's format.
 
-This method returns the current pattern. (After processing as above)
+This method returns the current format. (After processing as above)
 
 =item * time_zone($time_zone)
 
-When given a name, offset or C<DateTime::TimeZone> object, this method
-sets the object's time zone. This effects the C<DateTime> object returned
+When given a name, offset or DateTime::TimeZone object, this method
+sets the object's format. This effects the DateTime object returned
 by parse_datetime
 
-This method returns the current pattern. (After processing as above)
+This method returns the current format. (After processing as above)
 
 =back
 
@@ -904,19 +902,19 @@ available:
 
 =item * strptime($strptime_pattern, $string)
 
-Given a pattern and a string this function will return a new C<DateTime>
+Given a format and a string this function will return a new C<DateTime>
 object.
 
 =item * strftime($strftime_pattern, $datetime)
 
-Given a pattern and a C<DateTime> object this function will return a
+Given a format and a C<DateTime> object this function will return a
 formatted string.
 
 =back
 
 =head1 STRPTIME PATTERN TOKENS
 
-The following tokens are allowed in the pattern string for strptime
+The following tokens are allowed in the format string for strptime
 (parse_datetime):
 
 =over 4
@@ -947,7 +945,7 @@ The day of month (1-31).
 
 Equivalent to %m/%d/%y. (This is the American style date, very confusing
 to non-Americans, especially since %d/%m/%y is	widely used in Europe.
-The ISO 8601 standard pattern is %Y-%m-%d.)
+The ISO 8601 standard format is %Y-%m-%d.)
 
 =item * %g
 
@@ -1027,7 +1025,7 @@ Sunday of January is the first day of week 1.
 
 =item * %u
 
-The weekday number (1-7) with Monday = 1. This is the C<DateTime> standard.
+The weekday number (1-7) with Monday = 1. This is the DateTime standard.
 
 =item * %w
 
@@ -1063,13 +1061,9 @@ below]
 
 =head1 NOTES
 
-=over 4
-
 =item * strftime
 
 All references to strftime are now handled internally.
-
-=back
 
 =head1 SUPPORT
 
@@ -1078,7 +1072,7 @@ list. See http://lists.perl.org/ for more details.
 
 Alternatively, log them via the CPAN RT system via the web or email:
 
-	bug-datetime-format-strptime@rt.cpan.org
+http:// bug-datetime-format-strptime@rt.cpan.org
 
 This makes it much easier for me to track things and thus means your
 problem is less likely to be neglected.
@@ -1103,6 +1097,6 @@ C<datetime@perl.org> mailing list.
 
 http://datetime.perl.org/
 
-L<perl>, L<DateTime>, L<DateTime::TimeZone>
+L<perl>, L<DateTime>
 
 =cut

@@ -60,4 +60,10 @@ Note on version conventions:
 	- the 'wonky test' release
 		- Fixed the same test as above. Think I actually succeeded 
 		  this time!
+
+1.0103 Wed, 28 May 2003 20:10:57 +1000
+	- the 'What's up Docs' release
+		- Applied doc patches from Iain Truskett (Thanks!)
+		- Clarified parameter discrepancy between synopsis and docs
+		  (Thanks Chris Winters)
 		  
