@@ -31,3 +31,13 @@ Note on version conventions:
 	- the 'what the hell is that' release
 		- removed alien life-forms (characters that didn't ASCIIfy)
 	* No API change, just made it so it will install now!
+
+1.00.02 Tue, 29 Apr 2003 07:03:19 + 1000
+	- the 'please the testers' release
+		- Fixed a test that only worked in DateTime was from CVS
+		- Fixed two issues noted by Iain Truskett:
+		- Removed a diag() in test 1 that was just there for
+		  testing the test
+		- Added a linebreak to the end of the MANIFEST
+
+

@@ -31,8 +31,6 @@ my @tests = (
 
 );
 
-diag($DateTime::Format::Strptime::VERxSION);
-
 foreach (@tests) {
 	my ($pattern, $data, $name) = @$_;
 	$name ||= $pattern;
