@@ -19,7 +19,7 @@ is(substr($@,0,42), "Unidentified token in pattern: %Q in %Y %Q", "Croak message
 #--------------------------------------------------------------------------------
 
 
-diag("\nTurned Croak Off");
+#diag("\nTurned Croak Off");
 
 my $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
@@ -57,7 +57,7 @@ is($object->{errmsg} , 'Your two year values (03 and 2002) do not match.', "Erro
 #--------------------------------------------------------------------------------
 
 
-diag("\nTurned Croak On");
+#diag("\nTurned Croak On");
 $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',
@@ -89,7 +89,7 @@ is(substr($@,0,48), "Your two year values (03 and 2002) do not match.", "Croak m
 #--------------------------------------------------------------------------------
 
 
-diag("\nTurned Croak to Sub");
+#diag("\nTurned Croak to Sub");
 $object = DateTime::Format::Strptime->new(
 	pattern => '%Y %D',
 	time_zone => 'Australia/Melbourne',

@@ -11,7 +11,7 @@ use Exporter;
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
 
 @ISA = 'Exporter';
-$VERSION = '1.05';
+$VERSION = '1.06';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT = ();
 
@@ -440,7 +440,7 @@ iso_week_year_100 = $iso_week_year_100
 			: '';
 	if ($Day) {
 		$self->local_croak("There is no use providing a day without providing a month and year.") and return undef unless $Year and $Month;
-		my $dt = DateTime->new(year=>$Year, month=>$Month, day=>$Day, time_zone => $use_timezone); 
+		my $dt = DateTime->new(year=>$Year, month=>$Month, day=>$Day, hour=>12, time_zone => $use_timezone); 
 		$self->local_croak("There is no day $Day in $dt->month_name, $Year") and return undef 
 			unless $dt->month == $Month;
 	}

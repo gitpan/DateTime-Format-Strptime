@@ -138,4 +138,14 @@ Note on version conventions:
 	- This is a major change and you should install this release if
 	  you use any locale other than en.
 	
+1.0600 Sat, 28 Aug 2004 15:02:47 +1000	  
+	- the 'RedHat' release
+		- Fixed bug from RT (#7502) from dfaraldo@redhat.com
+		  that made validation fall over by assuming midnight
+		  always exists. The patch now assumes Midday exists
+		  (both he and I assume that DST will never start at
+		  midday anywhere anytime!)
+	- This is a major change and you should install this release if
+	  you ever use any time_zone other than floating or UTC. And if
+	  you don't use them today, you may tomorrow - so upgrade OK?
 	  
