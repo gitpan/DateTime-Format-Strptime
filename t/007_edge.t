@@ -2,7 +2,7 @@
 
 # t/007_edge.t - these tests are for edge case bug report errors
 
-use Test::More tests => 3;
+use Test::More tests => 10;
 use DateTime;
 use DateTime::Format::Strptime;
 
@@ -16,7 +16,32 @@ test(
 );
 
 
+#diag("1.0601 - Timezone defaults to UTC .. shoudld be floating")
+{
+	my $parser = DateTime::Format::Strptime->new(
+		pattern   => '%F %T',
+		locale    => 'en',
+		on_error  => 'undef',
+	);
+	isa_ok($parser, 'DateTime::Format::Strptime');
+	my $parsed = $parser->parse_datetime('2005-11-05 09:33:00');
+	isa_ok($parsed, 'DateTime');
+	is($parsed->time_zone->name,'floating');
+}
 
+
+#diag("1.0601 - Olson Time Zones - %O");
+{
+	my $parser = DateTime::Format::Strptime->new(
+		pattern   => '%F %T %O',
+		on_error  => 'undef',
+	);
+	isa_ok($parser, 'DateTime::Format::Strptime');
+	my $parsed = $parser->parse_datetime('2005-11-05 09:33:00 Australia/Melbourne');
+	isa_ok($parsed, 'DateTime');
+	is($parsed->time_zone->name,'Australia/Melbourne', 'Time zone determined from string');
+	is($parsed->epoch,'1131143580', 'Time zone applied to string');
+}
 
 
 
@@ -27,6 +52,7 @@ sub test {
 		pattern   => $arg{pattern}   || '%F %T',
 		locale    => $arg{locale}    || 'en',
 		time_zone => $arg{time_zone} || 'UTC',
+		diagnostic=> $arg{diagnostic}|| 0,
 		on_error  => 'undef',
 	);
 	isa_ok($strptime, 'DateTime::Format::Strptime');

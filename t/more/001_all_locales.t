@@ -2,7 +2,7 @@
 
 # t/more/001_all_locales.t - test formatting against every locales
 
-use Test::More tests => 17136;
+use Test::More tests => 18837;
 use DateTime::Format::Strptime;
 use DateTime::Locale;
 use DateTime;

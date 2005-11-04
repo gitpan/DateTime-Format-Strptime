@@ -10,13 +10,15 @@ Note on version conventions:
 * Whole numbers are rewrite releases. They contain major rewrites
   or alterations to the API. Read the docs before using them.
 * Major decimal number is patch release. Some coding has changed
-  but the API remains the same (or is extended). Upgrading to 
+  but the API remains the same (or is extended). Upgrading to
   these should not change any expected behaviour, however it
   will alter buggy behaviour. Read the docs and check if you've
   been using work-arounds before using them.
 * Minor decimal number is a doc or installer patch only. If you have
   the module installed and understand how it works, you don't need
   this release.
+* Datestamps are generated with:
+  perl -MDateTime -e 'print DateTime->now(time_zone=>"Australia/Melbourne")->strftime("%a, %e %b %Y %T %z")'
 
 0.01 Fri, 25 Apr 2003 21:30:21 +1000
         - original version - posted to DateTime mailing list
@@ -26,7 +28,7 @@ Note on version conventions:
         - first CPAN release
         - added tests
         - should be 100% compatible with DateTime's strftime function
-        
+
 1.00.01 Mon, 28 Apr 2003 07:12:01 +1000
     - the 'what the hell is that' release
         - removed alien life-forms (characters that didn't ASCIIfy)
@@ -45,7 +47,7 @@ Note on version conventions:
         - If we have the latest DateTime we run the test mentioned above
         - Fixed my version format as advised by Iain Truskett
           if it still doesn't work it's because of me, not him
-        - Added the ability to handle nanoseconds as requested by 
+        - Added the ability to handle nanoseconds as requested by
           Michael Goltze.
         - Got Time Zones working, including mapping non-ambiguous TLAs
           offsets and Olsen names (the latter uses the %q token)
@@ -55,10 +57,10 @@ Note on version conventions:
     - the 'oldtimers' release
         - Fixed a test that was broken if DateTime::TimeZone was not
           version 0.13 or above.
-          
+
 1.0102 Fri, 16 May 2003 07:28:18 + 1000
     - the 'wonky test' release
-        - Fixed the same test as above. Think I actually succeeded 
+        - Fixed the same test as above. Think I actually succeeded
           this time!
 
 1.0103 Wed, 28 May 2003 20:10:57 +1000
@@ -66,33 +68,33 @@ Note on version conventions:
         - Applied doc patches from Iain Truskett (Thanks!)
         - Clarified parameter discrepancy between synopsis and docs
           (Thanks Chris Winters)
-          
+
 1.0200 Wed, 28 May 2003 21:02:03 +1000
     - the 'Proclavity to croak' release
         - The docs for Time::Local talk about the 'proclavity to croak'
           which basically means the module croaks easily. So did this
           one until now.
-          
+
           Until now, if you allowed a user to specify a pattern and they
           entered one that was non parsable, this module would croak
           causing your script to croak. This is a Bad Thing (tm).
-          
+
           The behaviour now remains the same, however if you set
-          $DateTime::Format::StrpTime::CROAK to false, methods will 
-          return undef rather than croaking. 
+          $DateTime::Format::StrpTime::CROAK to false, methods will
+          return undef rather than croaking.
           $DateTime::Format::StrpTime::errmsg will tell you what went
-          wrong. 
-          
+          wrong.
+
           The default is to continue to croak. This means you have to
-          delibrately turn it off. Hopefully you'll change you script 
+          delibrately turn it off. Hopefully you'll change you script
           to do this at the same time you change it to check the
           return values of the methods :)
 
 1.0300 Sat, 07 Jun 2003 10:40:23 +1000
     - the 'Better way to die' release
-        - The above has changed by request of Dave Rolsky and Iain 
+        - The above has changed by request of Dave Rolsky and Iain
           Truskett (Thanks!). We now allow each object to have its
-          own behavior. 
+          own behavior.
         - The default behavior has been changed to returning undef.
           This was requested by someone (tell me if it was you!) and
           made a lot of sense to me.
@@ -121,7 +123,7 @@ Note on version conventions:
         - Added a test for locales known as 004locale.t
     - This is a major change and you should install this release if
       you are using DateTime >= 0.14 (the first release with Locale)
-      
+
 1.0500 Wed, 18 Aug 2004 17:24:32 +1000
     - the 'Jean Forget' release
         - Adapted and applied patches from Jean Forget to allow
@@ -137,8 +139,8 @@ Note on version conventions:
       I've now removed it. You've had a year of warnings!
     - This is a major change and you should install this release if
       you use any locale other than en.
-    
-1.0600 Sat, 28 Aug 2004 15:02:47 +1000    
+
+1.0600 Sat, 28 Aug 2004 15:02:47 +1000
     - the 'RedHat' release
         - Fixed bug from RT (#7502) from dfaraldo@redhat.com
           that made validation fall over by assuming midnight
@@ -148,7 +150,7 @@ Note on version conventions:
     - This is a major change and you should install this release if
       you ever use any time_zone other than floating or UTC. And if
       you don't use them today, you may tomorrow - so upgrade OK?
-      
+
 1.0601 Wed,  1 Sep 2004 07:52:44 +1000
     - The 'February 30th' test
         - Dave Faraldo and Jonathan Lefter pointed out that one of
@@ -158,4 +160,14 @@ Note on version conventions:
     - This is just a test fix and doesn't alter the way the module
       runs in any way. If you already got 1.06 to run then you don't
       need this.
-      
+
+1.0700 Sat,  5 Nov 2005 09:44:10 +1100
+    - The 'Twighlight Zone' release
+        - Mike Schilli pointed out that strings without time zones
+          or constructors without a time zone should be returning
+          a DateTime in the floating time zone rather than UTC.
+    	- Jason Bodnar requested greater allowance for time zones in
+    	  strings .. so I've now added the ability to use an Olson
+    	  time zone identifier with %O. Note that this is a token
+    	  specifically added to Strptime and it WILL NOT WORK with
+    	  DateTime's strftime method.
