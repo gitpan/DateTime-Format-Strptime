@@ -2,10 +2,10 @@ use ExtUtils::MakeMaker;
 
 print <<'EOF';
 -----------------------------------------
-  __                ___                
- (_   _|_  ._  ._    |   o  ._ _    _  
- __)   |_  |   |_)   |   |  | | |  (/_ 
-               |                       
+  __                ___
+ (_   _|_  ._  ._    |   o  ._ _    _
+ __)   |_  |   |_)   |   |  | | |  (/_
+               |
 -----------------------------------------
 
 To run thousands of other tests (mainly
@@ -26,7 +26,7 @@ WriteMakefile(
     ABSTRACT     => 'Parse and format strp and strf time patterns',
     PREREQ_PM    => {
        'DateTime'           => '0.1402',
-       'DateTime::Locale'   => '0.02',
+       'DateTime::Locale'   => '0.35',
        'DateTime::TimeZone' => '0.25',
        'Params::Validate'   => '0.64',
     },

@@ -29,18 +29,18 @@ my @tests = (
 	['en_GB',	'%c',	'31 Dec 1998 12:34:56'],
 	# French
 #);my @tests = (
-	['fr',	'%x',	'31 déc. 98'],
+	['fr',	'%x',	'31 déc 1998'],
 	['fr',	'%X',	'12:34:56'],
-	['fr',	'%c',	'31 déc. 98 12:34:56'],
+	['fr',	'%c',	'31 déc 1998 12:34:56'],
 );
 
 foreach (@tests) {
 	my ($locale, $pattern, $data) = @$_;
-	
+
 	$object->locale($locale);
 	$object->pattern($pattern);
 	my $datetime = $object->parse_datetime( $data );
-	
+
 	if ($pattern eq '%x' or $pattern eq '%c') {
 		is($datetime->year,  1998, $locale. ' : ' . $pattern . ' : year'  );
 		is($datetime->month,   12, $locale. ' : ' . $pattern . ' : month' );

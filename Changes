@@ -171,3 +171,11 @@ Note on version conventions:
     	  time zone identifier with %O. Note that this is a token
     	  specifically added to Strptime and it WILL NOT WORK with
     	  DateTime's strftime method.
+
+1.0701 2007-09-18
+	- The revised locale tests releasese
+		- Many people pointed out that while this module hadn't broken
+		  the tests for the French locale had. This is due to a new
+		  source for the data in DateTime::Locale. This version ONLY
+		  changes the tests and so it not a required update.
+
