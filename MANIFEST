@@ -1,9 +1,9 @@
+Build.PL
 Changes
 lib/DateTime/Format/Strptime.pm
 LICENSE
-Makefile.PL
-MANIFEST
-META.yml			Module meta-data (added by MakeMaker)
+MANIFEST			This list of files
+META.yml
 README
 t/001_load.t
 t/002_dates.t
@@ -14,4 +14,10 @@ t/006_locales.t
 t/007_edge.t
 t/008_epoch.t
 t/009_regexp.t
-t/more/001_all_locales.t
+xt/001_all_locales.t
+xt/kwalitee.t
+xt/pod-coverage.t
+xt/pod-spell.t
+xt/pod.t
+Makefile.PL
+SIGNATURE    Added here by Module::Build

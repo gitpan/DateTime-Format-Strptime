@@ -1,0 +1,45 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 7229d02c9d75a82ab15f1d658e2f7b4bd206ecd9 Build.PL
+SHA1 07355fb69c3471884cbb9a6680a23d048f73b19d Changes
+SHA1 f235ba4160673bcb7c9d58c2f09dbc7fc0efadea LICENSE
+SHA1 b4ab423a497effda675f4268ae7411ba4d72e62a MANIFEST
+SHA1 4a28538c5079960a230fcd43233ee99a2edccfd2 META.yml
+SHA1 9569aaade1714af390e4e7283f8f64a52da13faf Makefile.PL
+SHA1 641f6b868588cebe91f2dc39ed1d36909ccc51e0 README
+SHA1 3afba16cefa4c127f76b982b4e81cefbe456aef2 lib/DateTime/Format/Strptime.pm
+SHA1 36028252b2cef83972a10893f6e791335859daf1 t/001_load.t
+SHA1 697f27920609f1c4f5f1b335cb3819e3b310f565 t/002_dates.t
+SHA1 39976a62c616193d104b0efca4e5a0e91ba99a1f t/003_every.t
+SHA1 c77a67c6995a02b136ad84534fda8dc0b7b0e792 t/004_locale_defaults.t
+SHA1 2d773953c36b8f74b8915f60b3b7bc0191a12e6f t/005_croak.t
+SHA1 7c89a33066f76c9fa41940fd55d52a087be9870e t/006_locales.t
+SHA1 17bad4a308e3f679cfe7bb80044de43dd3cecbb1 t/007_edge.t
+SHA1 579f1a9cb59ac73fcbf9eb9a2e535fa1607153b3 t/008_epoch.t
+SHA1 381b87f0fecebd2c48c3537ea47d0da1e4a90d94 t/009_regexp.t
+SHA1 f561c0402d9e9d9eb0f8f37cc66f4b58e91e526c xt/001_all_locales.t
+SHA1 437178b17e5942761ac30bb436dcac115e5adff8 xt/kwalitee.t
+SHA1 9412f0b1b76342ca8b51d6a55083c3604d9f42f7 xt/pod-coverage.t
+SHA1 0c6abfd2a471e249c32c3310ea0c6a3018e8530f xt/pod-spell.t
+SHA1 9bb24d755c9e2fbf5d9b7db34df15637ccd8e3f6 xt/pod.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkujjqkACgkQIgMCsV8qvRLyxgCaAxyYwo17IBl6htfsPWi8cSU9
+aJMAnjU3S3ci61Ni6AwgQSl879x9ynOj
+=h9ZD
+-----END PGP SIGNATURE-----
