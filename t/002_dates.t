@@ -2,7 +2,7 @@
 
 # t/002_basic.t - check module dates in various formats
 
-use Test::More tests => 17;
+use Test::More tests => 19;
 use DateTime::Format::Strptime;
 use DateTime;
 use DateTime::TimeZone;
@@ -36,14 +36,20 @@ my @tests = (
     # Complex dates
     [ '%Y;%j = %Y-%m-%d',      '2003;56 = 2003-02-25' ],
     [ q|%d %b '%y = %Y-%m-%d|, q|25 Feb '03 = 2003-02-25| ],
+
+    # Leading spaces
+    [ '%e-%b-%Y %T %z', '13-Jun-2010 09:20:47 -0400' ],
+    [ '%e-%b-%Y %T %z', ' 3-Jun-2010 09:20:47 -0400' ],
 );
 
 foreach (@tests) {
     my ( $pattern, $data, $expect ) = @$_;
     $expect ||= $data;
     $object->pattern($pattern);
-    is( $object->format_datetime( $object->parse_datetime($data) ), $expect,
-        $pattern );
+    is(
+        $object->format_datetime( $object->parse_datetime($data) ), $expect,
+        $pattern
+    );
 }
 
 SKIP: {
@@ -90,6 +96,8 @@ SKIP: {
 
 $object->time_zone('Australia/Perth');
 $object->pattern('%Y %H:%M:%S %Z');
-is( $object->format_datetime( $object->parse_datetime('2003 23:45:56 MDT') ),
-    '2003 13:45:56 WST', $object->pattern );
+is(
+    $object->format_datetime( $object->parse_datetime('2003 23:45:56 MDT') ),
+    '2003 13:45:56 WST', $object->pattern
+);
 

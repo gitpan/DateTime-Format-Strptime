@@ -1,5 +1,13 @@
 #!perl -w
 
+BEGIN {
+  unless ($ENV{AUTHOR_TESTING}) {
+    require Test::More;
+    Test::More::plan(skip_all => 'these tests are for testing by the author');
+  }
+}
+
+
 # t/more/001_all_locales.t - test formatting against every locales
 
 use Test::More qw(no_plan);
@@ -82,4 +90,3 @@ foreach my $locale (@locales) {
         is( $parsed->strftime($pattern), $input, "Matched with Meridian" );
     }
 }
-
