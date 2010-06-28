@@ -1,4 +1,7 @@
 package DateTime::Format::Strptime;
+BEGIN {
+  $DateTime::Format::Strptime::VERSION = '1.4000';
+}
 
 use strict;
 
@@ -10,10 +13,9 @@ use Carp;
 
 use Exporter;
 use vars
-    qw( $VERSION @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
+    qw( @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
 
 @ISA       = 'Exporter';
-$VERSION   = '1.2000';
 @EXPORT_OK = qw( &strftime &strptime );
 @EXPORT    = ();
 
@@ -1079,7 +1081,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.3000
+version 1.4000
 
 =head1 SYNOPSIS
 

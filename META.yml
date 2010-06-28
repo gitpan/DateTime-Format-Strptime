@@ -6,9 +6,8 @@ build_requires:
   Test::More: 0.88
 configure_requires:
   ExtUtils::MakeMaker: 6.31
-  Module::Build: 0.36
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.101740, CPAN::Meta::Converter version 2.101670'
+generated_by: 'Dist::Zilla version 4.101790, CPAN::Meta::Converter version 2.101670'
 license: artistic_2
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -22,4 +21,4 @@ requires:
 resources:
   bugtracker: http://rt.cpan.org/NoAuth/Bugs.html?Dist=DateTime-Format-Strptime
   repository: http://hg.urth.org/hg/DateTime-Format-Strptime
-version: 1.3000
+version: 1.4000

@@ -15,8 +15,7 @@ my %WriteMakefileArgs = (
     'Test::More' => '0.88'
   },
   'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31',
-    'Module::Build' => '0.36'
+    'ExtUtils::MakeMaker' => '6.31'
   },
   'DISTNAME' => 'DateTime-Format-Strptime',
   'EXE_FILES' => [],
@@ -28,7 +27,7 @@ my %WriteMakefileArgs = (
     'DateTime::TimeZone' => '0.79',
     'Params::Validate' => '0.64'
   },
-  'VERSION' => '1.3000',
+  'VERSION' => '1.4000',
   'test' => {
     'TESTS' => 't/*.t'
   }
