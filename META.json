@@ -4,7 +4,7 @@
       "Dave Rolsky <autarch@urth.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.101790, CPAN::Meta::Converter version 2.101670",
+   "generated_by" : "Dist::Zilla version 4.102342, CPAN::Meta::Converter version 2.101670",
    "license" : [
       "artistic_2"
    ],
@@ -24,11 +24,7 @@
             "DateTime" : "0.4304",
             "DateTime::Locale" : "0.45",
             "DateTime::TimeZone" : "0.79",
-            "Params::Validate" : "0.64"
-         }
-      },
-      "test" : {
-         "requires" : {
+            "Params::Validate" : "0.64",
             "Test::More" : "0.88"
          }
       }
@@ -45,6 +41,6 @@
          "web" : "http://hg.urth.org/hg/DateTime-Format-Strptime"
       }
    },
-   "version" : "1.4000"
+   "version" : "1.5000"
 }
 

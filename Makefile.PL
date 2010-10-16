@@ -11,9 +11,7 @@ use ExtUtils::MakeMaker 6.31;
 my %WriteMakefileArgs = (
   'ABSTRACT' => 'Parse and format strp and strf time patterns',
   'AUTHOR' => 'Dave Rolsky <autarch@urth.org>',
-  'BUILD_REQUIRES' => {
-    'Test::More' => '0.88'
-  },
+  'BUILD_REQUIRES' => {},
   'CONFIGURE_REQUIRES' => {
     'ExtUtils::MakeMaker' => '6.31'
   },
@@ -25,9 +23,10 @@ my %WriteMakefileArgs = (
     'DateTime' => '0.4304',
     'DateTime::Locale' => '0.45',
     'DateTime::TimeZone' => '0.79',
-    'Params::Validate' => '0.64'
+    'Params::Validate' => '0.64',
+    'Test::More' => '0.88'
   },
-  'VERSION' => '1.4000',
+  'VERSION' => '1.5000',
   'test' => {
     'TESTS' => 't/*.t'
   }

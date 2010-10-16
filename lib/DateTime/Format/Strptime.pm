@@ -1,6 +1,6 @@
 package DateTime::Format::Strptime;
 BEGIN {
-  $DateTime::Format::Strptime::VERSION = '1.4000';
+  $DateTime::Format::Strptime::VERSION = '1.5000';
 }
 
 use strict;
@@ -123,6 +123,7 @@ use vars
     'Y'      => '-1200',     'YAKST'  => '+1000',     'YAKT'   => '+0900',
     'YAPT'   => '+1000',     'YDT'    => '-0800',     'YEKST'  => '+0600',
     'YEKT'   => '+0500',     'YST'    => '-0900',     'Z'      => '+0000',
+    'UTC'    => '+0000',
 );
 
 sub new {
@@ -1081,7 +1082,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.4000
+version 1.5000
 
 =head1 SYNOPSIS
 
@@ -1431,7 +1432,7 @@ L<perl>, L<DateTime>, L<DateTime::TimeZone>, L<DateTime::Locale>
 
 =head1 AUTHOR
 
-  Dave Rolsky <autarch@urth.org>
+Dave Rolsky <autarch@urth.org>
 
 =head1 COPYRIGHT AND LICENSE
 
