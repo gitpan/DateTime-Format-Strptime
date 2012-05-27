@@ -4,31 +4,36 @@ use warnings;
 
 
 
-use ExtUtils::MakeMaker 6.31;
+use ExtUtils::MakeMaker 6.30;
 
 
 
 my %WriteMakefileArgs = (
-  'ABSTRACT' => 'Parse and format strp and strf time patterns',
-  'AUTHOR' => 'Dave Rolsky <autarch@urth.org>',
-  'BUILD_REQUIRES' => {},
-  'CONFIGURE_REQUIRES' => {
-    'ExtUtils::MakeMaker' => '6.31'
+  "ABSTRACT" => "Parse and format strp and strf time patterns",
+  "AUTHOR" => "Dave Rolsky <autarch\@urth.org>",
+  "BUILD_REQUIRES" => {
+    "Test::More" => "0.88"
   },
-  'DISTNAME' => 'DateTime-Format-Strptime',
-  'EXE_FILES' => [],
-  'LICENSE' => 'artistic_2',
-  'NAME' => 'DateTime::Format::Strptime',
-  'PREREQ_PM' => {
-    'DateTime' => '0.4304',
-    'DateTime::Locale' => '0.45',
-    'DateTime::TimeZone' => '0.79',
-    'Params::Validate' => '0.64',
-    'Test::More' => '0.88'
+  "CONFIGURE_REQUIRES" => {
+    "ExtUtils::MakeMaker" => "6.30"
   },
-  'VERSION' => '1.5000',
-  'test' => {
-    'TESTS' => 't/*.t'
+  "DISTNAME" => "DateTime-Format-Strptime",
+  "EXE_FILES" => [],
+  "LICENSE" => "artistic_2",
+  "NAME" => "DateTime::Format::Strptime",
+  "PREREQ_PM" => {
+    "Carp" => 0,
+    "DateTime" => "0.44",
+    "DateTime::Locale" => "0.45",
+    "DateTime::TimeZone" => "0.79",
+    "Exporter" => 0,
+    "Params::Validate" => "0.64",
+    "strict" => 0,
+    "vars" => 0
+  },
+  "VERSION" => "1.51",
+  "test" => {
+    "TESTS" => "t/*.t"
   }
 );
 

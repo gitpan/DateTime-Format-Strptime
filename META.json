@@ -4,7 +4,7 @@
       "Dave Rolsky <autarch@urth.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.102342, CPAN::Meta::Converter version 2.101670",
+   "generated_by" : "Dist::Zilla version 4.300016, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "artistic_2"
    ],
@@ -16,15 +16,23 @@
    "prereqs" : {
       "configure" : {
          "requires" : {
-            "ExtUtils::MakeMaker" : "6.31"
+            "ExtUtils::MakeMaker" : "6.30"
          }
       },
       "runtime" : {
          "requires" : {
-            "DateTime" : "0.4304",
+            "Carp" : "0",
+            "DateTime" : "0.44",
             "DateTime::Locale" : "0.45",
             "DateTime::TimeZone" : "0.79",
+            "Exporter" : "0",
             "Params::Validate" : "0.64",
+            "strict" : "0",
+            "vars" : "0"
+         }
+      },
+      "test" : {
+         "requires" : {
             "Test::More" : "0.88"
          }
       }
@@ -36,11 +44,11 @@
          "web" : "http://rt.cpan.org/NoAuth/Bugs.html?Dist=DateTime-Format-Strptime"
       },
       "repository" : {
-         "type" : "hg",
-         "url" : "http://hg.urth.org/hg/DateTime-Format-Strptime",
-         "web" : "http://hg.urth.org/hg/DateTime-Format-Strptime"
+         "type" : "git",
+         "url" : "git://git.urth.org/DateTime-Format-Strptime.git",
+         "web" : "http://git.urth.org/DateTime-Format-Strptime.git"
       }
    },
-   "version" : "1.5000"
+   "version" : "1.51"
 }
 

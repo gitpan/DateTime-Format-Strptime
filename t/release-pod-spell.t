@@ -9,7 +9,7 @@ BEGIN {
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More 0.88;
 
 eval "use Test::Spelling";
 plan skip_all => "Test::Spelling required for testing POD coverage"
@@ -33,6 +33,7 @@ all_pod_files_spelling_ok();
 __DATA__
 Measham
 POSIX
+Rolsky
 STRPTIME
 errmsg
 formatter

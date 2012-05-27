@@ -1,4 +1,3 @@
-#!perl -w
 
 BEGIN {
   unless ($ENV{AUTHOR_TESTING}) {
@@ -7,10 +6,10 @@ BEGIN {
   }
 }
 
+use strict;
+use warnings;
 
-# t/more/001_all_locales.t - test formatting against every locales
-
-use Test::More qw(no_plan);
+use Test::More 0.88;
 use DateTime::Format::Strptime;
 use DateTime::Locale;
 use DateTime;
@@ -24,6 +23,7 @@ foreach my $locale (@locales) {
     foreach my $day ( 1 .. 7 ) {
         my $dt = DateTime->now( locale => $locale )->set( day => $day );
         my $input = $dt->strftime($pattern);
+        my $strptime;
         eval {
             $strptime = DateTime::Format::Strptime->new(
                 pattern  => $pattern,
@@ -49,6 +49,7 @@ foreach my $locale (@locales) {
         my $dt = DateTime->now( locale => $locale )->truncate( to => 'month' )
             ->set( month => $month );
         my $input = $dt->strftime($pattern);
+        my $strptime;
         eval {
             $strptime = DateTime::Format::Strptime->new(
                 pattern  => $pattern,
@@ -73,6 +74,7 @@ foreach my $locale (@locales) {
     foreach my $hour ( 11, 12 ) {
         my $dt = DateTime->now( locale => $locale )->set( hour => $hour );
         my $input = $dt->strftime($pattern);
+        my $strptime;
         eval {
             $strptime = DateTime::Format::Strptime->new(
                 pattern  => $pattern,
@@ -90,3 +92,6 @@ foreach my $locale (@locales) {
         is( $parsed->strftime($pattern), $input, "Matched with Meridian" );
     }
 }
+
+
+done_testing();

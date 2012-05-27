@@ -6,7 +6,6 @@ META.json
 META.yml
 Makefile.PL
 README
-SIGNATURE
 dist.ini
 lib/DateTime/Format/Strptime.pm
 t/001_load.t
@@ -20,8 +19,9 @@ t/008_epoch.t
 t/009_regexp.t
 t/author-001_all_locales.t
 t/release-eol.t
-t/release-kwalitee.t
 t/release-no-tabs.t
 t/release-pod-coverage.t
+t/release-pod-linkcheck.t
 t/release-pod-spell.t
+t/release-pod-syntax.t
 t/release-pod.t

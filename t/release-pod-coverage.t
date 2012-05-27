@@ -9,7 +9,7 @@ BEGIN {
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More 0.88;
 
 eval "use Test::Pod::Coverage 1.04";
 plan skip_all => "Test::Pod::Coverage 1.04 required for testing POD coverage"

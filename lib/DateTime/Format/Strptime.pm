@@ -1,19 +1,18 @@
 package DateTime::Format::Strptime;
-BEGIN {
-  $DateTime::Format::Strptime::VERSION = '1.5000';
+{
+  $DateTime::Format::Strptime::VERSION = '1.51';
 }
 
 use strict;
 
-use DateTime;
-use DateTime::Locale;
-use DateTime::TimeZone;
-use Params::Validate qw( validate SCALAR SCALARREF BOOLEAN OBJECT CODEREF );
+use DateTime 0.44;
+use DateTime::Locale 0.45;
+use DateTime::TimeZone 0.79;
+use Params::Validate 0.64 qw( validate SCALAR SCALARREF BOOLEAN OBJECT CODEREF );
 use Carp;
 
 use Exporter;
-use vars
-    qw( @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
+use vars qw( @ISA @EXPORT @EXPORT_OK %ZONEMAP %FORMATS $CROAK $errmsg);
 
 @ISA       = 'Exporter';
 @EXPORT_OK = qw( &strftime &strptime );
@@ -451,7 +450,6 @@ iso_week_year_100 = $iso_week_year_100
         foreach my $month ( @{ $self->{_locale}->month_format_wide } ) {
             $month_count++;
 
-            # 			use bytes;
             if ( lc $month eq lc $month_name ) {
                 $month_number = $month_count;
                 last;
@@ -464,7 +462,6 @@ iso_week_year_100 = $iso_week_year_100
             {
                 $month_count++;
 
-                # 				use bytes;
                 # When abbreviating, sometimes there's a period, sometimes not.
                 $month      =~ s/\.$//;
                 $month_name =~ s/\.$//;
@@ -695,7 +692,6 @@ iso_week_year_100 = $iso_week_year_100
         my $dow_number = 0;
         foreach my $dow ( @{ $self->{_locale}->day_format_wide } ) {
             $dow_count++;
-            use bytes;
             if ( lc $dow eq lc $dow_name ) {
                 $dow_number = $dow_count;
                 last;
@@ -706,7 +702,6 @@ iso_week_year_100 = $iso_week_year_100
             foreach my $dow ( @{ $self->{_locale}->day_format_abbreviated } )
             {
                 $dow_count++;
-                use bytes;
                 if ( lc $dow eq lc $dow_name ) {
                     $dow_number = $dow_count;
                     last;
@@ -1070,6 +1065,7 @@ sub strptime {
 }
 
 1;
+
 # ABSTRACT: Parse and format strp and strf time patterns
 
 
@@ -1082,43 +1078,43 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.5000
+version 1.51
 
 =head1 SYNOPSIS
 
-  use DateTime::Format::Strptime;
+    use DateTime::Format::Strptime;
 
-  my $Strp = new DateTime::Format::Strptime(
-  				pattern     => '%T',
-  				locale      => 'en_AU',
-  				time_zone   => 'Australia/Melbourne',
-  			);
+    my $strp = DateTime::Format::Strptime->new(
+        pattern   => '%T',
+        locale    => 'en_AU',
+        time_zone => 'Australia/Melbourne',
+    );
 
-  my $dt = $Strp->parse_datetime('23:16:42');
+    my $dt = $strp->parse_datetime('23:16:42');
 
-  $Strp->format_datetime($dt);
-	# 23:16:42
+    $strp->format_datetime($dt);
 
+    # 23:16:42
 
+    # Croak when things go wrong:
+    my $strp = DateTime::Format::Strptime->new(
+        pattern   => '%T',
+        locale    => 'en_AU',
+        time_zone => 'Australia/Melbourne',
+        on_error  => 'croak',
+    );
 
-  # Croak when things go wrong:
-  my $Strp = new DateTime::Format::Strptime(
-  				pattern 	=> '%T',
-  				locale	    => 'en_AU',
-  				time_zone	=> 'Australia/Melbourne',
-  				on_error	=> 'croak',
-  			);
+    $newpattern = $strp->pattern('%Q');
 
-  $newpattern = $Strp->pattern('%Q');
-  # Unidentified token in pattern: %Q in %Q at line 34 of script.pl
+    # Unidentified token in pattern: %Q in %Q at line 34 of script.pl
 
-  # Do something else when things go wrong:
-  my $Strp = new DateTime::Format::Strptime(
-  				pattern 	=> '%T',
-  				locale	    => 'en_AU',
-  				time_zone	=> 'Australia/Melbourne',
-  				on_error	=> \&phone_police,
-  			);
+    # Do something else when things go wrong:
+    my $strp = DateTime::Format::Strptime->new(
+        pattern   => '%T',
+        locale    => 'en_AU',
+        time_zone => 'Australia/Melbourne',
+        on_error  => \&phone_police,
+    );
 
 =head1 DESCRIPTION
 
@@ -1132,7 +1128,7 @@ associated.
 
 =over 4
 
-=item * new( pattern=>$strptime_pattern )
+=item * new( pattern => $strptime_pattern )
 
 Creates the format object. You must specify a pattern, you can also
 specify a C<time_zone> and a C<locale>. If you specify a time zone
@@ -1150,10 +1146,10 @@ valid options:
 
 (not undef, 'undef', it's a string not an undefined value)
 
-This is the default behavior. The module will return undef whenever it
-gets upset. The error can be accessed using the $object->errstr method.
-This is the ideal behaviour for interactive use where a user might
-provide an illegal pattern or a date that doesn't match the pattern.
+This is the default behavior. The module will return undef whenever it gets
+upset. The error can be accessed using the C<< $object->errmsg >> method.
+This is the ideal behaviour for interactive use where a user might provide an
+illegal pattern or a date that doesn't match the pattern.
 
 =item * 'croak'
 
@@ -1170,7 +1166,7 @@ these two it is possible to emulate the 'undef' behavior. (Returning a
 true value causes the method to return undef. Returning a false value
 causes the method to bravely continue):
 
-sub{$_[0]->{errmsg} = $_[1]; 1},
+    sub { $_[0]->{errmsg} = $_[1]; 1 },
 
 =back
 
@@ -1235,7 +1231,7 @@ this method so you can work out why things went wrong.
 This code emulates a C<$DateTime::Format::Strptime> with
 the C<on_error> parameter equal to C<'croak'>:
 
-C<$Strp->pattern($pattern) or die $DateTime::Format::Strptime::errmsg>
+C<< $strp->pattern($pattern) or die $DateTime::Format::Strptime::errmsg >>
 
 =back
 
@@ -1246,12 +1242,12 @@ available:
 
 =over 4
 
-=item * strptime($strptime_pattern, $string)
+=item * strptime( $strptime_pattern, $string )
 
 Given a pattern and a string this function will return a new C<DateTime>
 object.
 
-=item * strftime($strftime_pattern, $datetime)
+=item * strftime( $strftime_pattern, $datetime )
 
 Given a pattern and a C<DateTime> object this function will return a
 formatted string.
@@ -1384,9 +1380,9 @@ Monday of January is the first day of week 1.
 
 =item * %y
 
-The year within century (0-99). When a century is not otherwise
-specified, values in the range 69-99 refer to years in the twentieth
-century (1969-1999); values in the range 00-68 refer to years in the
+The year within century (0-99). When a century is not otherwise specified
+(with a value for %C), values in the range 69-99 refer to years in the
+twentieth century (1969-1999); values in the range 00-68 refer to years in the
 twenty-first century (2000-2068).
 
 =item * %Y
@@ -1440,7 +1436,7 @@ This software is Copyright (c) 2010 by Dave Rolsky.
 
 This is free software, licensed under:
 
-  The Artistic License 2.0
+  The Artistic License 2.0 (GPL Compatible)
 
 =cut
 
