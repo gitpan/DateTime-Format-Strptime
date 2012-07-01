@@ -1,6 +1,6 @@
 package DateTime::Format::Strptime;
 {
-  $DateTime::Format::Strptime::VERSION = '1.51';
+  $DateTime::Format::Strptime::VERSION = '1.52';
 }
 
 use strict;
@@ -1010,8 +1010,8 @@ sub _build_parser {
 
     # The Olson timezone name.
 
-    $regex      =~ s|%{(\w+)}|(DateTime->can($1)) ? "(.+)" : ".+"|eg;
-    $field_list =~ s|(%{(\w+)})|(DateTime->can($2)) ? "#$2#" : $1 |eg;
+    $regex      =~ s|%\{(\w+)\}|(DateTime->can($1)) ? "(.+)" : ".+"|eg;
+    $field_list =~ s|(%\{(\w+)\})|(DateTime->can($2)) ? "#$2#" : $1 |eg;
 
     # Any function in DateTime.
 
@@ -1078,7 +1078,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.51
+version 1.52
 
 =head1 SYNOPSIS
 
@@ -1281,7 +1281,7 @@ The century number (0-99).
 
 =item * %d or %e
 
-The day of month (1-31).
+The day of month (01-31). This will parse single digit numbers as well.
 
 =item * %D
 
@@ -1304,7 +1304,7 @@ The year corresponding to the ISO week number.
 
 =item * %H
 
-The hour (0-23).
+The hour (00-23). This will parse single digit numbers as well.
 
 =item * %I
 
@@ -1316,11 +1316,11 @@ The day number in the year (1-366).
 
 =item * %m
 
-The month number (1-12).
+The month number (01-12). This will parse single digit numbers as well.
 
 =item * %M
 
-The minute (0-59).
+The minute (00-59). This will parse single digit numbers as well.
 
 =item * %n
 
