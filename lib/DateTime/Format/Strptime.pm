@@ -1,6 +1,6 @@
 package DateTime::Format::Strptime;
 {
-  $DateTime::Format::Strptime::VERSION = '1.52';
+  $DateTime::Format::Strptime::VERSION = '1.53';
 }
 
 use strict;
@@ -1068,7 +1068,7 @@ sub strptime {
 
 # ABSTRACT: Parse and format strp and strf time patterns
 
-
+__END__
 
 =pod
 
@@ -1078,7 +1078,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.52
+version 1.53
 
 =head1 SYNOPSIS
 
@@ -1426,20 +1426,26 @@ http://datetime.perl.org/
 
 L<perl>, L<DateTime>, L<DateTime::TimeZone>, L<DateTime::Locale>
 
-=head1 AUTHOR
+=head1 AUTHORS
+
+=over 4
+
+=item *
 
 Dave Rolsky <autarch@urth.org>
 
+=item *
+
+Rick Measham <rickm@cpan.org>
+
+=back
+
 =head1 COPYRIGHT AND LICENSE
 
-This software is Copyright (c) 2010 by Dave Rolsky.
+This software is Copyright (c) 2013 by Dave Rolsky.
 
 This is free software, licensed under:
 
   The Artistic License 2.0 (GPL Compatible)
 
 =cut
-
-
-__END__
-

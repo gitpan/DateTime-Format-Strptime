@@ -24,4 +24,3 @@ t/release-pod-coverage.t
 t/release-pod-linkcheck.t
 t/release-pod-spell.t
 t/release-pod-syntax.t
-t/release-pod.t

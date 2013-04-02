@@ -1,10 +1,11 @@
 {
    "abstract" : "Parse and format strp and strf time patterns",
    "author" : [
-      "Dave Rolsky <autarch@urth.org>"
+      "Dave Rolsky <autarch@urth.org>",
+      "Rick Measham <rickm@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300016, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 4.300032, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "artistic_2"
    ],
@@ -17,6 +18,11 @@
       "configure" : {
          "requires" : {
             "ExtUtils::MakeMaker" : "6.30"
+         }
+      },
+      "develop" : {
+         "requires" : {
+            "Test::Pod" : "1.41"
          }
       },
       "runtime" : {
@@ -49,6 +55,6 @@
          "web" : "http://git.urth.org/DateTime-Format-Strptime.git"
       }
    },
-   "version" : "1.52"
+   "version" : "1.53"
 }
 
