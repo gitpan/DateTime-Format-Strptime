@@ -1,11 +1,11 @@
 package DateTime::Format::Strptime;
 {
-  $DateTime::Format::Strptime::VERSION = '1.53';
+  $DateTime::Format::Strptime::VERSION = '1.54';
 }
 
 use strict;
 
-use DateTime 0.44;
+use DateTime 1.00;
 use DateTime::Locale 0.45;
 use DateTime::TimeZone 0.79;
 use Params::Validate 0.64 qw( validate SCALAR SCALARREF BOOLEAN OBJECT CODEREF );
@@ -1078,7 +1078,7 @@ DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.53
+version 1.54
 
 =head1 SYNOPSIS
 

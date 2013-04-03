@@ -21,7 +21,7 @@ my %WriteMakefileArgs = (
   "NAME" => "DateTime::Format::Strptime",
   "PREREQ_PM" => {
     "Carp" => 0,
-    "DateTime" => "0.44",
+    "DateTime" => "1.00",
     "DateTime::Locale" => "0.45",
     "DateTime::TimeZone" => "0.79",
     "Exporter" => 0,
@@ -32,7 +32,7 @@ my %WriteMakefileArgs = (
   "TEST_REQUIRES" => {
     "Test::More" => "0.88"
   },
-  "VERSION" => "1.53",
+  "VERSION" => "1.54",
   "test" => {
     "TESTS" => "t/*.t"
   }
