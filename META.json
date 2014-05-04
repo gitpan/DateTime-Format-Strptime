@@ -5,7 +5,7 @@
       "Rick Measham <rickm@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 4.300032, CPAN::Meta::Converter version 2.120921",
+   "generated_by" : "Dist::Zilla version 5.015, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "artistic_2"
    ],
@@ -55,6 +55,9 @@
          "web" : "http://git.urth.org/DateTime-Format-Strptime.git"
       }
    },
-   "version" : "1.54"
+   "version" : "1.55",
+   "x_contributors" : [
+      "Ken Williams <Ken.Williams@WindLogics.com>"
+   ]
 }
 
