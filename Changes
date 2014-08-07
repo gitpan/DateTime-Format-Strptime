@@ -1,17 +1,13 @@
-1.55     2014-05-04
+1.56     2014-08-07
 
-- If diagnostic is true for an object, it will now use Test::More::diag()
-  under the test harness rather than printing to STDOUT.
+- Recent DateTime::TimeZone changes broke the tests.
 
-- The %z specifier will now parse UTC offsets with a colon like
-  "+01:00". Requested by David Pyke Le Brun. RT #91458.
+- Fixed Latin-1 content in test code. It's now UTF-8.
 
-- Made the regexes to parse day & months abbreviations & names a little more
-  specific. As it stood, they tended to eat up nomre non-word characters than
-  they should, so a pattern like '%a%m%d_%Y' break on a date like
-  'Fri0215_2013'. The day name would be parsed as 'Fri02' and the month would
-  not be parsed at all. Reported by Maxwell Carey and ikegami. RT #93863 and
-  #93865.
+
+1.55     2014-08-07.
+
+- Broken release. I deleted this from PAUSE.
 
 
 1.54     2013-04-02

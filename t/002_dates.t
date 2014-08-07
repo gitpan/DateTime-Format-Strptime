@@ -9,7 +9,9 @@ use DateTime::TimeZone;
 
 my $object = DateTime::Format::Strptime->new(
     pattern => '%D',
-    diagnostic => 0,
+
+    #	time_zone => 'Australia/Melbourne',
+    diagnostic => 1,
     on_error   => 'croak',
 );
 
@@ -21,11 +23,6 @@ my @tests = (
     [ '%Y years, %j days', '1998 years, 312 days' ],
     [ '%b %d, %Y',         'Jan 24, 2003' ],
     [ '%B %d, %Y',         'January 24, 2003' ],
-
-    # Simple dates with weekday
-    [ '%a%Y-%m-%d', 'Sun2014-05-04' ],
-    [ '%A%Y-%m-%d', 'Sunday2014-05-04' ],
-    [ '%a%m%d_%Y' => 'Sun0504_2014' ],
 
     # Simple times
     [ '%H:%M:%S',    '23:45:56' ],
@@ -81,12 +78,6 @@ SKIP: {
         '23:45:56 +1000', '%H:%M:%S %z'
     );
 
-    $object->pattern('%H:%M:%S %z');
-    is(
-        $object->format_datetime( $object->parse_datetime('23:45:56 +10:00') ),
-        '23:45:56 +1000', '%H:%M:%S %z'
-    );
-
     $object->pattern('%H:%M:%S %Z');
     is(
         $object->format_datetime( $object->parse_datetime('23:45:56 AEST') ),
@@ -103,11 +94,11 @@ SKIP: {
     );
 }
 
-$object->time_zone('Australia/Perth');
+$object->time_zone('America/New_York');
 $object->pattern('%Y %H:%M:%S %Z');
 is(
     $object->format_datetime( $object->parse_datetime('2003 23:45:56 MDT') ),
-    '2003 13:45:56 WST', $object->pattern
+    '2003 00:45:56 EST', $object->pattern
 );
 
 done_testing();

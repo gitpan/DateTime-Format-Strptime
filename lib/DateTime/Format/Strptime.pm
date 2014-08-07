@@ -1,5 +1,7 @@
 package DateTime::Format::Strptime;
-$DateTime::Format::Strptime::VERSION = '1.55';
+# git description: v1.54-8-g6aa82d9
+$DateTime::Format::Strptime::VERSION = '1.56';
+
 use strict;
 
 use DateTime 1.00;
@@ -272,9 +274,10 @@ sub parse_datetime {
     die $@ if $@;
 
     if ( $self->{diagnostic} ) {
-        my $diag = <<"EOF";
+        print qq|
+
 Entered     = $time_string
-Parser      = $parser
+Parser		= $parser
 
 dow_name    = $dow_name
 month_name  = $month_name
@@ -301,14 +304,9 @@ timezone    = $timezone
 epoch       = $epoch
 iso_week_year     = $iso_week_year
 iso_week_year_100 = $iso_week_year_100
-EOF
 
-        if ( $ENV{HARNESS_ACTIVE} ) {
-            Test::More::diag($diag);
-        }
-        else {
-            print $diag;
-        }
+		|;
+
     }
 
     $self->local_croak("Your datetime does not match your pattern.")
@@ -863,11 +861,11 @@ sub _build_parser {
         '|',
         map      { quotemeta $_ }
             sort { length $b <=> length $a }
-            @{ $self->{_locale}->day_format_wide },
-        @{ $self->{_locale}->day_format_abbreviated }
+            grep( /\W/, @{ $self->{_locale}->day_format_wide },
+            @{ $self->{_locale}->day_format_abbreviated } )
     );
     $day_re .= '|' if $day_re;
-    $regex =~ s/%a/($day_re\\w+)/gi;
+    $regex      =~ s/%a/($day_re\\w+)/gi;
     $field_list =~ s/%a/#dow_name#/gi;
 
     # %a is the day of the week, using the locale's weekday names; either the abbreviated or full name may be specified.
@@ -877,8 +875,8 @@ sub _build_parser {
         '|',
         map      { quotemeta $_ }
             sort { length $b <=> length $a }
-            @{ $self->{_locale}->month_format_wide },
-        @{ $self->{_locale}->month_format_abbreviated }
+            grep( /\s|\d/, @{ $self->{_locale}->month_format_wide },
+            @{ $self->{_locale}->month_format_abbreviated } )
     );
     $month_re .= '|' if $month_re;
     $month_re .= '[^\\s\\d]+';
@@ -996,7 +994,7 @@ sub _build_parser {
 
     # is the year including the century (for example, 1998).
 
-    $regex      =~ s|%z|([+-]\\d\\d:?\\d\\d)|g;
+    $regex      =~ s|%z|([+-]\\d{4})|g;
     $field_list =~ s/%z/#tz_offset#/g;
 
     # Timezone Offset.
@@ -1073,13 +1071,15 @@ __END__
 
 =pod
 
+=encoding UTF-8
+
 =head1 NAME
 
 DateTime::Format::Strptime - Parse and format strp and strf time patterns
 
 =head1 VERSION
 
-version 1.55
+version 1.56
 
 =head1 SYNOPSIS
 
@@ -1329,8 +1329,7 @@ Arbitrary whitespace.
 
 =item * %N
 
-Nanoseconds. For other sub-second values use C<%[number]N>, where
-C<[number]> is the number of digits (without the brackets).
+Nanoseconds. For other sub-second values use C<%[number]N>.
 
 =item * %p
 
@@ -1393,7 +1392,8 @@ The year, including century (for example, 1991).
 
 =item * %z
 
-A time zone offset in the format "[+-]HHmm" or "[+-]HH:mm".
+An RFC-822/ISO 8601 standard time zone specification. (For example
++1100) [See note below]
 
 =item * %Z
 
